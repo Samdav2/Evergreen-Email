@@ -1,0 +1,6 @@
+{
+  "name": "Evergreen Mail",
+  "description": "A premium marketing CRM platform with email campaigns, drag-and-drop template designer, audience management, and campaign analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
