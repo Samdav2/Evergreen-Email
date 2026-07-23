@@ -2,14 +2,17 @@ from datetime import datetime
 from typing import Optional, List, Dict
 from pydantic import BaseModel
 
+
 class EngagementTrendPoint(BaseModel):
     time: str
     opens: int
     clicks: int
 
+
 class DeviceBreakdown(BaseModel):
     device: str
     percentage: float
+
 
 class AnalyticsOverview(BaseModel):
     total_sent_30d: int
@@ -20,6 +23,9 @@ class AnalyticsOverview(BaseModel):
     click_rate_change_pct: float
     avg_bounce_rate: float
     bounce_rate_status: str
+    total_contacts: int = 0
+    active_automations: int = 0
+
 
 class CampaignAnalyticsDetail(BaseModel):
     campaign_id: int

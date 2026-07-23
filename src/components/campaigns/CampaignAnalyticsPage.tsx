@@ -30,14 +30,16 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
     }
   };
 
-  const trendData = analyticsData?.trend_data || [
-    { time: '10:00', opens: 1200, clicks: 450 },
-    { time: '14:00', opens: 2800, clicks: 920 },
-    { time: '18:00', opens: 5400, clicks: 1890 },
-    { time: '22:00', opens: 8900, clicks: 3100 },
-    { time: '02:00', opens: 11200, clicks: 4050 },
-    { time: '06:00', opens: 12450, clicks: 4280 }
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+        <span className="ml-2 text-sm text-slate-500">Loading analytics...</span>
+      </div>
+    );
+  }
+
+  const trendData = analyticsData?.engagement_trends || [];
 
   return (
     <div className="space-y-6">
@@ -78,9 +80,9 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
       <div>
         <div className="flex items-center gap-2 mb-1">
           <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">SENT</span>
-          <span className="text-xs text-slate-400 font-medium">• Oct 24, 2024 at 10:15 AM</span>
+          <span className="text-xs text-slate-400 font-medium">• {analyticsData?.sent_date || '—'}</span>
         </div>
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Q4 Product Launch Announcement</h1>
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">{analyticsData?.subject || 'Campaign Analytics'}</h1>
       </div>
 
       {/* 4 Stat Cards */}
@@ -88,45 +90,61 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <Mail className="w-5 h-5 text-emerald-600" />
-            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ArrowUpRight className="w-3 h-3" /> +12.4%
-            </span>
+            {analyticsData && analyticsData.open_rate_growth !== undefined && (
+              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <ArrowUpRight className="w-3 h-3" /> +{analyticsData.open_rate_growth}%
+              </span>
+            )}
           </div>
           <span className="text-xs font-semibold text-slate-500">Total Opens</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">42,891</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">
+            {analyticsData ? analyticsData.total_opens.toLocaleString() : '—'}
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <MousePointer className="w-5 h-5 text-emerald-600" />
-            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ArrowUpRight className="w-3 h-3" /> +3.1%
-            </span>
+            {analyticsData && analyticsData.ctr_growth !== undefined && (
+              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <ArrowUpRight className="w-3 h-3" /> +{analyticsData.ctr_growth}%
+              </span>
+            )}
           </div>
           <span className="text-xs font-semibold text-slate-500">CTR</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">8.42%</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">
+            {analyticsData ? `${analyticsData.ctr}%` : '—'}
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <div className="w-5 h-5 text-emerald-600 font-bold">🛒</div>
-            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ArrowUpRight className="w-3 h-3" /> +0.8%
-            </span>
+            {analyticsData && analyticsData.conversion_growth !== undefined && (
+              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <ArrowUpRight className="w-3 h-3" /> +{analyticsData.conversion_growth}%
+              </span>
+            )}
           </div>
           <span className="text-xs font-semibold text-slate-500">Conversion Rate</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">2.15%</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">
+            {analyticsData ? `${analyticsData.conversion_rate}%` : '—'}
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <Mail className="w-5 h-5 text-slate-400" />
-            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ArrowDownRight className="w-3 h-3" /> -2.4%
-            </span>
+            {analyticsData && analyticsData.bounce_growth !== undefined && (
+              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <ArrowDownRight className="w-3 h-3" /> {analyticsData.bounce_growth}%
+              </span>
+            )}
           </div>
           <span className="text-xs font-semibold text-slate-500">Bounce Rate</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">0.42%</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">
+            {analyticsData ? `${analyticsData.bounce_rate}%` : '—'}
+          </p>
         </div>
       </div>
 
@@ -138,25 +156,29 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
         </div>
 
         <div className="h-64 w-full pt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={trendData}>
-              <defs>
-                <linearGradient id="colorOpens" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#002d1c" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#002d1c" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} tickLine={false} />
-              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-              <Tooltip />
-              <Area type="monotone" dataKey="opens" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorOpens)" />
-              <Area type="monotone" dataKey="clicks" stroke="#002d1c" strokeWidth={3} fillOpacity={1} fill="url(#colorClicks)" />
-            </AreaChart>
-          </ResponsiveContainer>
+          {trendData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="colorOpens" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#002d1c" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#002d1c" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip />
+                <Area type="monotone" dataKey="opens" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorOpens)" />
+                <Area type="monotone" dataKey="clicks" stroke="#002d1c" strokeWidth={3} fillOpacity={1} fill="url(#colorClicks)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-slate-400 text-xs">No engagement data available</div>
+          )}
         </div>
       </div>
 
@@ -217,9 +239,7 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
 
           <div className="space-y-3 text-xs">
             <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 bg-emerald-100 text-[#002d1c] rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">
-                JD
-              </div>
+              <div className="w-7 h-7 bg-emerald-100 text-[#002d1c] rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">JD</div>
               <div>
                 <p className="font-semibold text-slate-800">Jane Doe clicked on <span className="font-bold">"Buy Now"</span></p>
                 <p className="text-[10px] text-slate-400">2 minutes ago • New York, NY</p>
@@ -227,9 +247,7 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
             </div>
 
             <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 bg-emerald-100 text-[#002d1c] rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">
-                JS
-              </div>
+              <div className="w-7 h-7 bg-emerald-100 text-[#002d1c] rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">JS</div>
               <div>
                 <p className="font-semibold text-slate-800">John Smith opened the email</p>
                 <p className="text-[10px] text-slate-400">5 minutes ago • London, UK</p>

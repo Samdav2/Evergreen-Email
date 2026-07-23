@@ -15,32 +15,58 @@ from backend.app.services.analytics_service import AnalyticsService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
+
 def get_user_repository(session: Session = Depends(get_session)) -> UserRepository:
     return UserRepository(session)
 
-def get_contact_repository(session: Session = Depends(get_session)) -> ContactRepository:
+
+def get_contact_repository(
+    session: Session = Depends(get_session),
+) -> ContactRepository:
     return ContactRepository(session)
 
-def get_template_repository(session: Session = Depends(get_session)) -> TemplateRepository:
+
+def get_template_repository(
+    session: Session = Depends(get_session),
+) -> TemplateRepository:
     return TemplateRepository(session)
 
-def get_campaign_repository(session: Session = Depends(get_session)) -> CampaignRepository:
+
+def get_campaign_repository(
+    session: Session = Depends(get_session),
+) -> CampaignRepository:
     return CampaignRepository(session)
 
-def get_auth_service(user_repo: UserRepository = Depends(get_user_repository)) -> AuthService:
+
+def get_auth_service(
+    user_repo: UserRepository = Depends(get_user_repository),
+) -> AuthService:
     return AuthService(user_repo)
 
-def get_contact_service(contact_repo: ContactRepository = Depends(get_contact_repository)) -> ContactService:
+
+def get_contact_service(
+    contact_repo: ContactRepository = Depends(get_contact_repository),
+) -> ContactService:
     return ContactService(contact_repo)
 
-def get_template_service(template_repo: TemplateRepository = Depends(get_template_repository)) -> TemplateService:
+
+def get_template_service(
+    template_repo: TemplateRepository = Depends(get_template_repository),
+) -> TemplateService:
     return TemplateService(template_repo)
 
-def get_campaign_service(campaign_repo: CampaignRepository = Depends(get_campaign_repository)) -> CampaignService:
-    return CampaignService(campaign_repo)
+
+def get_campaign_service(
+    campaign_repo: CampaignRepository = Depends(get_campaign_repository),
+    contact_repo: ContactRepository = Depends(get_contact_repository),
+    template_repo: TemplateRepository = Depends(get_template_repository),
+) -> CampaignService:
+    return CampaignService(campaign_repo, contact_repo, template_repo)
+
 
 def get_analytics_service() -> AnalyticsService:
     return AnalyticsService()
+
 
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
     # Default to demo user ID 1 for seamless interactive session

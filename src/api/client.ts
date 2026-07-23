@@ -1,75 +1,90 @@
-import { Contact, EmailTemplate, Campaign, CampaignAnalytics } from '../types';
+import { Contact, EmailTemplate, Campaign, CampaignAnalytics, PaginatedContacts } from '../types';
 
 const API_BASE = '/api/v1';
 
-export async function fetchContacts(): Promise<Contact[]> {
-  const res = await fetch(`${API_BASE}/contacts`);
-  if (!res.ok) throw new Error('Failed to fetch contacts');
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem('auth_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+      ...options?.headers,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `Request failed with status ${res.status}`);
+  }
   return res.json();
 }
 
+export async function fetchContacts(page: number = 1, pageSize: number = 100): Promise<PaginatedContacts> {
+  return request(`${API_BASE}/contacts?page=${page}&page_size=${pageSize}`);
+}
+
 export async function importManualContacts(raw_text: string) {
-  const res = await fetch(`${API_BASE}/contacts/import-manual`, {
+  return request(`${API_BASE}/contacts/import-manual`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ raw_text }),
   });
-  if (!res.ok) throw new Error('Failed to import contacts');
+}
+
+export async function uploadContactsFile(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const token = localStorage.getItem('auth_token');
+  const res = await fetch(`${API_BASE}/contacts/upload`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || 'File upload failed');
+  }
   return res.json();
 }
 
 export async function fetchTemplates(): Promise<EmailTemplate[]> {
-  const res = await fetch(`${API_BASE}/templates`);
-  if (!res.ok) throw new Error('Failed to fetch templates');
-  return res.json();
+  return request(`${API_BASE}/templates`);
 }
 
 export async function createTemplate(data: { name: string; subject_line: string; content_json: string; category?: string }) {
-  const res = await fetch(`${API_BASE}/templates`, {
+  return request(`${API_BASE}/templates`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to create template');
-  return res.json();
 }
 
 export async function fetchCampaigns(): Promise<Campaign[]> {
-  const res = await fetch(`${API_BASE}/campaigns`);
-  if (!res.ok) throw new Error('Failed to fetch campaigns');
-  return res.json();
+  return request(`${API_BASE}/campaigns`);
 }
 
-export async function createCampaign(data: { subject: string; category_label: string; scheduled_time?: string }) {
-  const res = await fetch(`${API_BASE}/campaigns`, {
+export async function createCampaign(data: { subject: string; category_label: string; scheduled_time?: string; template_id?: number | null }) {
+  return request(`${API_BASE}/campaigns`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to create campaign');
-  return res.json();
 }
 
 export async function launchCampaign(campaign_id: number, schedule_option: 'immediate' | 'scheduled') {
-  const res = await fetch(`${API_BASE}/campaigns/launch`, {
+  return request(`${API_BASE}/campaigns/launch`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ campaign_id, schedule_option }),
   });
-  if (!res.ok) throw new Error('Failed to launch campaign');
-  return res.json();
 }
 
 export async function fetchAnalyticsSummary() {
-  const res = await fetch(`${API_BASE}/analytics/summary`);
-  if (!res.ok) throw new Error('Failed to fetch analytics summary');
-  return res.json();
+  return request(`${API_BASE}/analytics/summary`);
 }
 
 export async function fetchCampaignAnalytics(id: number): Promise<CampaignAnalytics> {
-  const res = await fetch(`${API_BASE}/analytics/campaign/${id}`);
-  if (!res.ok) throw new Error('Failed to fetch campaign analytics');
-  return res.json();
+  return request(`${API_BASE}/analytics/campaign/${id}`);
 }
 
 export async function loginUser(email: string, password: string) {
@@ -78,7 +93,10 @@ export async function loginUser(email: string, password: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) throw new Error('Invalid login credentials');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || 'Invalid login credentials');
+  }
   return res.json();
 }
 
@@ -88,7 +106,10 @@ export async function signupUser(full_name: string, email: string, password: str
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ full_name, email, password }),
   });
-  if (!res.ok) throw new Error('Signup failed');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || 'Signup failed');
+  }
   return res.json();
 }
 
@@ -98,6 +119,9 @@ export async function resetPassword(email: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   });
-  if (!res.ok) throw new Error('Reset password request failed');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || 'Reset password request failed');
+  }
   return res.json();
 }

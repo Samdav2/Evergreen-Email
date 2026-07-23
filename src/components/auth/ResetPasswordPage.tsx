@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trees, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ActivePage } from '../../types';
+import { resetPassword } from '../../api/client';
 
 interface ResetPasswordPageProps {
   onNavigate: (page: ActivePage) => void;
@@ -10,14 +11,20 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ onNavigate
   const [email, setEmail] = useState('');
   const [isSent, setIsSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMsg('');
+    try {
+      await resetPassword(email);
       setIsSent(true);
-    }, 500);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to send recovery link');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -55,6 +62,11 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ onNavigate
                 Enter the email address associated with your account and we'll send you a recovery link.
               </p>
 
+              {errorMsg && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-xs font-semibold border border-red-200">
+                  {errorMsg}
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>

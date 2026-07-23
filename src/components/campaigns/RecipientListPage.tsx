@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Download, Star, Filter, Loader2 } from 'lucide-react';
-import { ActivePage, Contact } from '../../types';
+import { ActivePage, Contact, PaginatedContacts } from '../../types';
 import { fetchContacts } from '../../api/client';
 
 interface RecipientListPageProps {
@@ -19,8 +19,8 @@ export const RecipientListPage: React.FC<RecipientListPageProps> = () => {
   const loadContacts = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchContacts();
-      setContacts(data);
+      const data: PaginatedContacts = await fetchContacts();
+      setContacts(data.items);
     } catch (err) {
       console.error(err);
     } finally {

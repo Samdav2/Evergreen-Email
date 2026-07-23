@@ -82,6 +82,14 @@ export interface EngagementTrendPoint {
   clicks: number;
 }
 
+export interface PaginatedContacts {
+  items: Contact[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_next: boolean;
+}
+
 export interface CampaignAnalytics {
   campaign_id: number;
   subject: string;

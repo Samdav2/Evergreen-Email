@@ -1,12 +1,32 @@
-import React from 'react';
-import { Plus, Users, Mail, TrendingUp, Sparkles, ArrowRight, Layout } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Users, Mail, TrendingUp, Sparkles, ArrowRight, Layout, Loader2 } from 'lucide-react';
 import { ActivePage } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { fetchAnalyticsSummary } from '../../api/client';
 
 interface DashboardOverviewProps {
   onNavigate: (page: ActivePage) => void;
 }
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigate }) => {
+  const { user } = useAuth();
+  const [summary, setSummary] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadSummary();
+  }, []);
+
+  const loadSummary = async () => {
+    try {
+      const data = await fetchAnalyticsSummary();
+      setSummary(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="space-y-6">
       {/* Banner */}
@@ -16,7 +36,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigate
             <Sparkles className="w-3.5 h-3.5" /> Evergreen Mail CRM v1.0
           </span>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            Welcome back, Jane.
+            Welcome back, {user?.full_name?.split(' ')[0] || 'there'}.
           </h1>
           <p className="text-xs text-emerald-100/80 leading-relaxed">
             Your marketing CRM is running smoothly. Overall open rate is up 2.4% this week.
@@ -39,6 +59,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigate
         </div>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+          <span className="ml-2 text-sm text-slate-500">Loading analytics...</span>
+        </div>
+      )}
+
       {/* 4 Overview Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
@@ -47,34 +75,50 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigate
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+14%</span>
           </div>
           <span className="text-xs font-semibold text-slate-500">Total Contacts</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">42,850</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">
+            {summary ? summary.total_contacts.toLocaleString() : '—'}
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <Mail className="w-5 h-5 text-emerald-600" />
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+12%</span>
+            {summary && (
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                +{summary.sent_growth_pct}%
+              </span>
+            )}
           </div>
           <span className="text-xs font-semibold text-slate-500">Emails Sent (30d)</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">124,502</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">
+            {summary ? summary.total_sent_30d.toLocaleString() : '—'}
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <TrendingUp className="w-5 h-5 text-emerald-600" />
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+2.4%</span>
+            {summary && (
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                +{summary.open_rate_growth_pct}%
+              </span>
+            )}
           </div>
           <span className="text-xs font-semibold text-slate-500">Avg. Open Rate</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">32.4%</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">
+            {summary ? `${summary.avg_open_rate}%` : '—'}
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <Layout className="w-5 h-5 text-emerald-600" />
-            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">12 Templates</span>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{summary?.active_automations || '—'} Active</span>
           </div>
           <span className="text-xs font-semibold text-slate-500">Active Automations</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">8 Active</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">
+            {summary ? `${summary.active_automations} Active` : '—'}
+          </p>
         </div>
       </div>
 

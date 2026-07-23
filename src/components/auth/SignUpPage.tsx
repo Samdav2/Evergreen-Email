@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Leaf, Eye, EyeOff, Sparkles, TrendingUp, User, Mail, Lock, ArrowRight } from 'lucide-react';
 import { ActivePage } from '../../types';
-import { signupUser } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 interface SignUpPageProps {
   onNavigate: (page: ActivePage) => void;
@@ -9,6 +9,7 @@ interface SignUpPageProps {
 }
 
 export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate, onSignUpSuccess }) => {
+  const { signup } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +23,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate, onSignUpSucc
     setIsLoading(true);
     setErrorMsg('');
     try {
-      await signupUser(fullName, email, password);
+      await signup(fullName, email, password);
       setIsLoading(false);
       onSignUpSuccess();
     } catch (err: any) {

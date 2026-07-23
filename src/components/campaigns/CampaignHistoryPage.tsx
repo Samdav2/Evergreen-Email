@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Download, MoreVertical, RotateCcw, Clock, ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react';
 import { Campaign, ActivePage } from '../../types';
-import { fetchCampaigns } from '../../api/client';
+import { fetchCampaigns, fetchAnalyticsSummary } from '../../api/client';
 
 interface CampaignHistoryPageProps {
   onNavigate: (page: ActivePage) => void;
@@ -11,17 +11,22 @@ interface CampaignHistoryPageProps {
 export const CampaignHistoryPage: React.FC<CampaignHistoryPageProps> = ({ onSelectCampaignAnalytics }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [summary, setSummary] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadCampaigns();
+    loadData();
   }, []);
 
-  const loadCampaigns = async () => {
+  const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchCampaigns();
-      setCampaigns(data);
+      const [campaignsData, summaryData] = await Promise.all([
+        fetchCampaigns(),
+        fetchAnalyticsSummary(),
+      ]);
+      setCampaigns(campaignsData);
+      setSummary(summaryData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -59,40 +64,56 @@ export const CampaignHistoryPage: React.FC<CampaignHistoryPageProps> = ({ onSele
         <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs">
           <span className="text-[11px] font-semibold text-slate-500">Total Sent (30d)</span>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-xl font-extrabold text-slate-900">124,502</span>
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ArrowUpRight className="w-3 h-3" /> +12%
+            <span className="text-xl font-extrabold text-slate-900">
+              {summary ? summary.total_sent_30d.toLocaleString() : isLoading ? '...' : '—'}
             </span>
+            {summary && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <ArrowUpRight className="w-3 h-3" /> +{summary.sent_growth_pct}%
+              </span>
+            )}
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs">
           <span className="text-[11px] font-semibold text-slate-500">Avg. Open Rate</span>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-xl font-extrabold text-slate-900">24.8%</span>
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ArrowUpRight className="w-3 h-3" /> +2.4%
+            <span className="text-xl font-extrabold text-slate-900">
+              {summary ? `${summary.avg_open_rate}%` : isLoading ? '...' : '—'}
             </span>
+            {summary && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <ArrowUpRight className="w-3 h-3" /> +{summary.open_rate_growth_pct}%
+              </span>
+            )}
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs">
           <span className="text-[11px] font-semibold text-slate-500">Click Rate</span>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-xl font-extrabold text-slate-900">3.2%</span>
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-              <ArrowDownRight className="w-3 h-3" /> -0.8%
+            <span className="text-xl font-extrabold text-slate-900">
+              {summary ? `${summary.avg_click_rate}%` : isLoading ? '...' : '—'}
             </span>
+            {summary && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                <ArrowDownRight className="w-3 h-3" /> {summary.click_rate_change_pct}%
+              </span>
+            )}
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs">
           <span className="text-[11px] font-semibold text-slate-500">Bounce Rate</span>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-xl font-extrabold text-slate-900">0.14%</span>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-              Stable
+            <span className="text-xl font-extrabold text-slate-900">
+              {summary ? `${summary.avg_bounce_rate}%` : isLoading ? '...' : '—'}
             </span>
+            {summary && (
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                {summary.bounce_rate_status}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -125,107 +146,86 @@ export const CampaignHistoryPage: React.FC<CampaignHistoryPageProps> = ({ onSele
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {filteredCampaigns.map((camp) => (
-                <tr key={camp.id} className="hover:bg-slate-50/50 transition">
-                  {/* Subject Line */}
-                  <td className="py-3.5 px-4">
-                    <button
-                      onClick={() => onSelectCampaignAnalytics(camp.id)}
-                      className="font-bold text-slate-900 hover:text-emerald-700 text-left block"
-                    >
-                      {camp.subject}
-                    </button>
-                    <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
-                      {camp.category_label}
-                    </span>
-                  </td>
-
-                  {/* Sent Date */}
-                  <td className="py-3.5 px-4 text-slate-600 font-medium">
-                    {camp.sent_date}
-                  </td>
-
-                  {/* Status Pill */}
-                  <td className="py-3.5 px-4">
-                    {camp.status === 'Sent' && (
-                      <span className="bg-emerald-100/80 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                        Sent
-                      </span>
-                    )}
-                    {camp.status === 'Failed' && (
-                      <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                        Failed
-                      </span>
-                    )}
-                    {camp.status === 'Scheduled' && (
-                      <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                        Scheduled
-                      </span>
-                    )}
-                    {camp.status === 'Active' && (
-                      <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                        Active
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Audience */}
-                  <td className="py-3.5 px-4 text-slate-700 font-medium">
-                    {camp.recipients_count.toLocaleString()} users
-                  </td>
-
-                  {/* Open Rate Bar */}
-                  <td className="py-3.5 px-4">
-                    {camp.open_rate > 0 ? (
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 w-10">{camp.open_rate}%</span>
-                        <div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className="bg-emerald-600 h-full rounded-full"
-                            style={{ width: `${Math.min(100, camp.open_rate)}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-slate-400 font-bold">--</span>
-                    )}
-                  </td>
-
-                  {/* Actions */}
-                  <td className="py-3.5 px-4 text-right">
-                    {camp.status === 'Failed' ? (
-                      <button className="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-2.5 py-1 rounded-lg text-xs transition inline-flex items-center gap-1">
-                        <RotateCcw className="w-3 h-3" /> Retry
-                      </button>
-                    ) : camp.status === 'Scheduled' ? (
-                      <button className="text-slate-400 hover:text-slate-600 p-1">
-                        <Clock className="w-4 h-4" />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => onSelectCampaignAnalytics(camp.id)}
-                        className="text-slate-400 hover:text-slate-700 p-1"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    )}
+              {filteredCampaigns.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                    {isLoading ? 'Loading...' : 'No campaigns yet. Create your first campaign to get started.'}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredCampaigns.map((camp) => (
+                  <tr key={camp.id} className="hover:bg-slate-50/50 transition">
+                    <td className="py-3.5 px-4">
+                      <button
+                        onClick={() => onSelectCampaignAnalytics(camp.id)}
+                        className="font-bold text-slate-900 hover:text-emerald-700 text-left block"
+                      >
+                        {camp.subject}
+                      </button>
+                      <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
+                        {camp.category_label}
+                      </span>
+                    </td>
+
+                    <td className="py-3.5 px-4 text-slate-600 font-medium">
+                      {camp.sent_date || '—'}
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      {camp.status === 'Sent' && (
+                        <span className="bg-emerald-100/80 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full">Sent</span>
+                      )}
+                      {camp.status === 'Failed' && (
+                        <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Failed</span>
+                      )}
+                      {camp.status === 'Scheduled' && (
+                        <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Scheduled</span>
+                      )}
+                      {camp.status === 'Active' && (
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full">Active</span>
+                      )}
+                      {camp.status === 'Draft' && (
+                        <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full">Draft</span>
+                      )}
+                    </td>
+
+                    <td className="py-3.5 px-4 text-slate-700 font-medium">
+                      {camp.recipients_count > 0 ? `${camp.recipients_count.toLocaleString()} users` : '—'}
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      {camp.open_rate > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 w-10">{camp.open_rate}%</span>
+                          <div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${Math.min(100, camp.open_rate)}%` }}></div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 font-bold">--</span>
+                      )}
+                    </td>
+
+                    <td className="py-3.5 px-4 text-right">
+                      {camp.status === 'Failed' ? (
+                        <button className="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-2.5 py-1 rounded-lg text-xs transition inline-flex items-center gap-1">
+                          <RotateCcw className="w-3 h-3" /> Retry
+                        </button>
+                      ) : camp.status === 'Scheduled' ? (
+                        <button className="text-slate-400 hover:text-slate-600 p-1">
+                          <Clock className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button onClick={() => onSelectCampaignAnalytics(camp.id)} className="text-slate-400 hover:text-slate-700 p-1">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between text-xs text-slate-500 pt-2">
-          <span>Showing 1-10 of 1,240 campaigns</span>
-          <div className="flex items-center gap-1">
-            <button className="p-1.5 rounded border border-slate-200 hover:bg-slate-50">&lt;</button>
-            <button className="px-3 py-1 rounded font-bold bg-[#002d1c] text-white">1</button>
-            <button className="px-3 py-1 rounded hover:bg-slate-100">2</button>
-            <button className="px-3 py-1 rounded hover:bg-slate-100">3</button>
-            <button className="p-1.5 rounded border border-slate-200 hover:bg-slate-50">&gt;</button>
-          </div>
         </div>
       </div>
     </div>

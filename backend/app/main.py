@@ -1,12 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.db.database import init_db
-from backend.app.api.v1 import auth, contacts, templates, campaigns, analytics
+from backend.app.api.v1 import (
+    auth,
+    contacts,
+    templates,
+    campaigns,
+    analytics,
+    unsubscribe,
+)
 
 app = FastAPI(
     title="Evergreen Mail API",
     description="Backend Marketing CRM API service built with FastAPI, SQLModel & Pydantic.",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Enable CORS for Next.js / React frontend
@@ -18,17 +25,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 def on_startup() -> None:
     init_db()
+
 
 @app.get("/")
 def health_check() -> dict:
     return {
         "status": "online",
         "service": "Evergreen Mail CRM Engine",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
+
 
 # Include API Routers
 app.include_router(auth.router, prefix="/api/v1")
@@ -36,3 +46,4 @@ app.include_router(contacts.router, prefix="/api/v1")
 app.include_router(templates.router, prefix="/api/v1")
 app.include_router(campaigns.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
+app.include_router(unsubscribe.router, prefix="/api/v1")
