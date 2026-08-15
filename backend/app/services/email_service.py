@@ -83,8 +83,11 @@ def _send_via_resend(
     resend.api_key = api_key
     from_field = f"{from_name} <{from_email}>" if from_name else from_email
     
+    # Primary inbox deliverability headers
     headers = {
-        "X-Entity-Ref-ID": f"campaign-{subject[:32]}",
+        "X-Entity-Ref-ID": f"msg-{abs(hash(subject))}",
+        "X-Auto-Response-Suppress": "OOF, AutoReply",
+        "Importance": "Normal",
     }
     if unsubscribe_url:
         headers["List-Unsubscribe"] = f"<{unsubscribe_url}>"
@@ -97,10 +100,18 @@ def _send_via_resend(
         "html": html_content,
         "headers": headers,
     }
-    if reply_to:
-        params["reply_to"] = reply_to
+    
+    # Ensure Reply-To is always set for personal/Primary inbox classification
+    effective_reply_to = reply_to or from_email
+    if effective_reply_to:
+        params["reply_to"] = effective_reply_to
+
     if plain_text:
         params["text"] = plain_text
+    else:
+        # Fallback basic text conversion to ensure plain text alternative is never missing
+        import re
+        params["text"] = re.sub(r'<[^>]+>', '', html_content).strip()
 
     try:
         response = resend.Emails.send(params)
@@ -131,9 +142,16 @@ def _send_via_mailjet(
 
     url = "https://api.mailjet.com/v3.1/send"
     
-    headers_dict = {}
+    headers_dict = {
+        "X-Entity-Ref-ID": f"msg-{abs(hash(subject))}",
+        "X-Auto-Response-Suppress": "OOF, AutoReply",
+    }
     if unsubscribe_url:
         headers_dict["List-Unsubscribe"] = f"<{unsubscribe_url}>"
+
+    import re
+    effective_plain_text = plain_text or re.sub(r'<[^>]+>', '', html_content).strip()
+    effective_reply_to = reply_to or from_email
 
     message = {
         "From": {
@@ -147,11 +165,10 @@ def _send_via_mailjet(
         ],
         "Subject": subject,
         "HTMLPart": html_content,
+        "TextPart": effective_plain_text,
     }
-    if plain_text:
-        message["TextPart"] = plain_text
-    if reply_to:
-        message["ReplyTo"] = {"Email": reply_to}
+    if effective_reply_to:
+        message["ReplyTo"] = {"Email": effective_reply_to}
     if headers_dict:
         message["Headers"] = headers_dict
 

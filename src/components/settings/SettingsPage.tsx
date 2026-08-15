@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { fetchSettings, updateSettings, sendTestEmail } from '../../api/client';
 
-type Tab = 'mail_service' | 'business_address' | 'template_defaults';
+type Tab = 'mail_service' | 'primary_inbox' | 'business_address' | 'template_defaults';
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('mail_service');
@@ -33,6 +33,7 @@ export const SettingsPage: React.FC = () => {
     resend_api_key: '',
     mailjet_api_key: '',
     mailjet_secret_key: '',
+    primary_inbox_mode: true,
 
     default_from_email: '',
     default_from_name: '',
@@ -73,6 +74,7 @@ export const SettingsPage: React.FC = () => {
         resend_api_key: data?.resend_api_key || '',
         mailjet_api_key: data?.mailjet_api_key || '',
         mailjet_secret_key: data?.mailjet_secret_key || '',
+        primary_inbox_mode: data?.primary_inbox_mode ?? true,
 
         default_from_email: data?.default_from_email || 'onboarding@resend.dev',
         default_from_name: data?.default_from_name || 'Evergreen Mail',
@@ -206,6 +208,17 @@ export const SettingsPage: React.FC = () => {
           }`}
         >
           <Mail className="w-4 h-4" /> Mail Provider & Credentials
+        </button>
+
+        <button
+          onClick={() => setActiveTab('primary_inbox')}
+          className={`py-3 px-3 sm:px-4 text-xs font-bold transition flex items-center gap-2 border-b-2 ${
+            activeTab === 'primary_inbox'
+              ? 'border-emerald-600 text-emerald-800 bg-emerald-50/50 rounded-t-xl'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4 text-emerald-600" /> Primary Inbox Deliverability
         </button>
 
         <button
@@ -460,6 +473,122 @@ export const SettingsPage: React.FC = () => {
                 <p className="text-[11px] opacity-90">{testResult.message || testResult.error || JSON.stringify(testResult.response)}</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Primary Inbox Deliverability */}
+      {activeTab === 'primary_inbox' && (
+        <div className="space-y-6">
+          {/* Main Deliverability Mode Toggle */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> Primary Inbox Optimization Engine
+                  </h2>
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    RECOMMENDED
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Automatically configures outgoing headers, HTML structures, and plain-text fallbacks to route emails directly into recipients' <strong>Primary Inbox</strong> instead of Promotions or Spam folders.
+                </p>
+              </div>
+
+              {/* Toggle switch */}
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input
+                  type="checkbox"
+                  checked={settingsData.primary_inbox_mode}
+                  onChange={(e) => handleChange('primary_inbox_mode', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                <span className="ml-3 text-xs font-bold text-slate-900">
+                  {settingsData.primary_inbox_mode ? 'Active' : 'Disabled'}
+                </span>
+              </label>
+            </div>
+
+            {/* Feature Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Header De-Bulkification
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Strips mass-marketing campaign tags (`campaign-`) and injects personal conversation routing headers (`msg-`).
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Natural Plain-Text Sync
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Attaches a perfectly formatted plain-text copy alongside HTML to pass Gmail & Outlook AI inbox filters.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Clean Footer Disclaimers
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Replaces heavy promotional marketing boilerplate with minimal, compliant address & unsubscribe lines.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Primary Inbox Best Practices Guide */}
+          <div className="bg-gradient-to-br from-slate-900 to-[#002d1c] text-white p-6 rounded-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" /> Primary Inbox Placement Checklist
+                </h3>
+                <p className="text-xs text-slate-300 mt-1">
+                  Follow these 5 rules to maximize inbox placement across Gmail, Outlook, and Yahoo Mail.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Rule 1</span>
+                <h4 className="text-xs font-bold text-white">Use a Personal Sender Name</h4>
+                <p className="text-[11px] text-slate-300">
+                  Send from e.g. "Samuel Dawodu" or "John from Evergreen" rather than "Marketing Team" or "Sales".
+                </p>
+              </div>
+
+              <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Rule 2</span>
+                <h4 className="text-xs font-bold text-white">Authenticate Custom Domain</h4>
+                <p className="text-[11px] text-slate-300">
+                  Configure SPF & DKIM DNS records in Resend or Mailjet so your domain is verified as authentic.
+                </p>
+              </div>
+
+              <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Rule 3</span>
+                <h4 className="text-xs font-bold text-white">Avoid Promotional Subject Line Triggers</h4>
+                <p className="text-[11px] text-slate-300">
+                  Never use ALL CAPS, excessive "!!!", or words like "100% FREE", "SPECIAL DISCOUNT", or "BUY NOW".
+                </p>
+              </div>
+
+              <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Rule 4</span>
+                <h4 className="text-xs font-bold text-white">Maintain High Text-to-Image Ratio</h4>
+                <p className="text-[11px] text-slate-300">
+                  Heavy image banners trigger Gmail's Promotions tab. Keep content text-first with clean paragraphs.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

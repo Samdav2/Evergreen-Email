@@ -9,6 +9,9 @@ class SystemSettingsBase(SQLModel):
     mailjet_api_key: Optional[str] = Field(default=None)
     mailjet_secret_key: Optional[str] = Field(default=None)
     
+    # Deliverability & Primary Inbox Placement
+    primary_inbox_mode: bool = Field(default=True, description="Optimize headers, HTML & plain text for Primary Inbox placement")
+    
     # Sender Configuration
     default_from_email: str = Field(default="onboarding@resend.dev")
     default_from_name: str = Field(default="Evergreen Mail")

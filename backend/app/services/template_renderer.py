@@ -217,16 +217,13 @@ def _render_footer_with_address(unsubscribe_url: str, settings: Optional[Any]) -
       <strong>{b_name}</strong>{f' &bull; {address_line}' if address_line else ''}
     </p>""" if b_name else ""
 
-    unsub_html = f"""<p style="margin:8px 0 0;">
-      <a href="{unsubscribe_url or '#'}" style="color:#94a3b8;font-size:11px;text-decoration:underline;">Unsubscribe from these emails</a>
+    unsub_html = f"""<p style="margin:6px 0 0;">
+      <a href="{unsubscribe_url or '#'}" style="color:#94a3b8;font-size:11px;text-decoration:underline;">Unsubscribe</a>
     </p>"""
 
     return f"""<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
   <tr>
-    <td align="center" style="padding:24px 16px 8px;">
-      <p style="margin:0;font-size:11px;color:#94a3b8;font-family:sans-serif;">
-        You received this email because you're subscribed to Evergreen Mail updates.
-      </p>
+    <td align="center" style="padding:20px 16px 8px;">
       {address_html}
       {unsub_html}
     </td>
@@ -236,19 +233,48 @@ def _render_footer_with_address(unsubscribe_url: str, settings: Optional[Any]) -
 
 import re
 
-def render_plain_text(content_json: str) -> str:
+def render_plain_text(content_json: str, settings: Optional[Any] = None) -> str:
     if not content_json:
         return ""
-    blocks: List[Dict[str, Any]] = json.loads(content_json)
+    try:
+        blocks: List[Dict[str, Any]] = json.loads(content_json)
+    except Exception:
+        return ""
+        
     parts: list = []
+    
+    if settings:
+        h_title = getattr(settings, "header_title", None)
+        if h_title:
+            parts.append(h_title)
+
     for b in blocks:
         t = b.get("type", "")
         c = b.get("content", "")
+        st = b.get("styles", {})
         if t == "text":
-            clean = re.sub(r'<[^>]+>', '', c)
-            parts.append(clean.strip())
+            clean = re.sub(r'<br\s*/?>', '\n', c)
+            clean = re.sub(r'</p>', '\n\n', clean)
+            clean = re.sub(r'<[^>]+>', '', clean)
+            if clean.strip():
+                parts.append(clean.strip())
         elif t == "button":
-            parts.append(f"[Link: {c}]")
+            link_url = st.get("linkUrl") if isinstance(st, dict) else None
+            link_href = link_url or (c if c.startswith("http") else "")
+            if link_href:
+                parts.append(f"[{c}] ({link_href})")
+            else:
+                parts.append(f"[{c}]")
         elif t == "divider":
             parts.append("---")
-    return "\n\n".join(parts)
+        elif t == "image":
+            alt = st.get("altText") if isinstance(st, dict) else "Image"
+            parts.append(f"[{alt}]")
+
+    if settings:
+        website_url = getattr(settings, "website_url", None)
+        cta_text = getattr(settings, "cta_link_text", None)
+        if website_url and cta_text:
+            parts.append(f"{cta_text}: {website_url}")
+
+    return "\n\n".join([p for p in parts if p.strip()])

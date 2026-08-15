@@ -1,0 +1,17 @@
+# Nixpacks configuration for Railway
+# Dual runtime: Python 3 (FastAPI) + Node.js 22 (Express + Vite build)
+
+[phases.setup]
+nixPkgs = ["python314", "nodejs_22", "npm-10_x", "gcc", "file"]
+
+[phases.install]
+cmds = [
+  "pip install -r backend/requirements.txt",
+  "npm ci"
+]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 & sleep 3 && NODE_ENV=production API_TARGET=http://127.0.0.1:8000 node dist/server.cjs"

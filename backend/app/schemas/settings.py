@@ -8,6 +8,7 @@ class SystemSettingsRead(BaseModel):
     resend_api_key: Optional[str] = None
     mailjet_api_key: Optional[str] = None
     mailjet_secret_key: Optional[str] = None
+    primary_inbox_mode: bool = True
     
     default_from_email: str
     default_from_name: str
@@ -39,6 +40,7 @@ class SystemSettingsUpdate(BaseModel):
     resend_api_key: Optional[str] = None
     mailjet_api_key: Optional[str] = None
     mailjet_secret_key: Optional[str] = None
+    primary_inbox_mode: Optional[bool] = None
     
     default_from_email: Optional[str] = None
     default_from_name: Optional[str] = None

@@ -4,7 +4,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
-const API_TARGET = process.env.API_TARGET || "http://127.0.0.1:8000" + "/api";
+const API_TARGET = process.env.API_TARGET || "http://127.0.0.1:8000";
 const apiProxy = createProxyMiddleware({
   target: API_TARGET,
   changeOrigin: true,
@@ -12,7 +12,7 @@ const apiProxy = createProxyMiddleware({
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = parseInt(process.env.PORT || "3000", 10);
 
   // Proxy API and OpenAPI endpoints to the Python FastAPI backend
   app.use("/api", apiProxy);
@@ -37,10 +37,11 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(
-      `Evergreen Mail dev server on http://0.0.0.0:${PORT}`
+      `Evergreen Mail server on http://0.0.0.0:${PORT}`
     );
     console.log(`  → API proxied to ${API_TARGET}`);
   });
 }
 
 startServer();
+

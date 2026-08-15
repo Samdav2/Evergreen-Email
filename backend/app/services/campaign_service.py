@@ -77,7 +77,7 @@ class CampaignService:
         unsubscribe_url = f"{APP_URL}/api/v1/unsubscribe?email={encoded_email}"
 
         html = render_content_blocks(content_json, unsubscribe_url, settings=settings)
-        plain = render_plain_text(content_json)
+        plain = render_plain_text(content_json, settings=settings)
         return html, plain
 
 def dispatch_campaign_background_task(campaign_id: int) -> None:
@@ -148,7 +148,7 @@ def dispatch_campaign_background_task(campaign_id: int) -> None:
                 encoded = contact.email.replace("@", "%40")
                 unsubscribe_url = f"{APP_URL}/api/v1/unsubscribe?email={encoded}"
                 html_body = render_content_blocks(content_json, unsubscribe_url, settings=settings)
-                plain_text = render_plain_text(content_json)
+                plain_text = render_plain_text(content_json, settings=settings)
 
                 res = send_campaign_email(
                     to_email=contact.email,
