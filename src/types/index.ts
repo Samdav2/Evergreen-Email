@@ -93,12 +93,37 @@ export interface PaginatedContacts {
   has_next: boolean;
 }
 
+export interface DeviceBreakdown {
+  device: string;
+  percentage: number;
+  count?: number;
+}
+
+export interface LocationBreakdown {
+  location: string;
+  percentage: number;
+  count?: number;
+}
+
+export interface RecentActivityItem {
+  id?: number;
+  recipient_email: string;
+  event_type: string;
+  timestamp: string;
+  device_type: string;
+  location: string;
+}
+
 export interface CampaignAnalytics {
   campaign_id: number;
   subject: string;
   sent_date: string;
+  total_sent?: number;
+  total_delivered?: number;
   total_opens: number;
+  open_rate?: number;
   open_rate_growth: number;
+  total_clicks?: number;
   ctr: number;
   ctr_growth: number;
   conversion_rate: number;
@@ -106,4 +131,8 @@ export interface CampaignAnalytics {
   bounce_rate: number;
   bounce_growth: number;
   engagement_trends: EngagementTrendPoint[];
+  device_breakdown?: DeviceBreakdown[];
+  location_breakdown?: LocationBreakdown[];
+  recent_activity?: RecentActivityItem[];
 }
+

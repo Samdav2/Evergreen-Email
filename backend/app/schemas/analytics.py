@@ -12,6 +12,22 @@ class EngagementTrendPoint(BaseModel):
 class DeviceBreakdown(BaseModel):
     device: str
     percentage: float
+    count: int = 0
+
+
+class LocationBreakdown(BaseModel):
+    location: str
+    percentage: float
+    count: int = 0
+
+
+class RecentActivityItem(BaseModel):
+    id: Optional[int] = None
+    recipient_email: str
+    event_type: str
+    timestamp: str
+    device_type: str = "Desktop"
+    location: str = "United States"
 
 
 class AnalyticsOverview(BaseModel):
@@ -31,12 +47,20 @@ class CampaignAnalyticsDetail(BaseModel):
     campaign_id: int
     subject: str
     sent_date: str
-    total_opens: int
-    open_rate_growth: float
-    ctr: float
-    ctr_growth: float
-    conversion_rate: float
-    conversion_growth: float
-    bounce_rate: float
-    bounce_growth: float
-    engagement_trends: List[EngagementTrendPoint]
+    total_sent: int = 0
+    total_delivered: int = 0
+    total_opens: int = 0
+    open_rate: float = 0.0
+    open_rate_growth: float = 0.0
+    total_clicks: int = 0
+    ctr: float = 0.0
+    ctr_growth: float = 0.0
+    conversion_rate: float = 0.0
+    conversion_growth: float = 0.0
+    bounce_rate: float = 0.0
+    bounce_growth: float = 0.0
+    engagement_trends: List[EngagementTrendPoint] = []
+    device_breakdown: List[DeviceBreakdown] = []
+    location_breakdown: List[LocationBreakdown] = []
+    recent_activity: List[RecentActivityItem] = []
+

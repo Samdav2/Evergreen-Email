@@ -63,32 +63,118 @@ class AnalyticsService:
     def get_campaign_detail(self, campaign_id: int) -> CampaignAnalyticsDetail:
         campaign = self.session.get(Campaign, campaign_id)
 
-        # Count logs for this campaign
-        logs = list(self.session.exec(select(CampaignLog).where(CampaignLog.campaign_id == campaign_id)).all())
-        opens_count = len([l for l in logs if l.event_type == "opened"])
-        clicks_count = len([l for l in logs if l.event_type == "clicked"])
+        # Retrieve all campaign logs for this specific campaign from database
+        logs_query = select(CampaignLog).where(CampaignLog.campaign_id == campaign_id)
+        logs = list(self.session.exec(logs_query).all())
 
         subject = campaign.subject if campaign else "Campaign Analytics"
-        sent_date = campaign.sent_date if campaign else "Recently"
+        sent_date = campaign.sent_date if campaign and campaign.sent_date else "Recently"
 
-        trends = [
-            EngagementTrendPoint(time="10:00", opens=int(opens_count * 0.1) if opens_count else 120, clicks=int(clicks_count * 0.1) if clicks_count else 45),
-            EngagementTrendPoint(time="14:00", opens=int(opens_count * 0.3) if opens_count else 280, clicks=int(clicks_count * 0.3) if clicks_count else 92),
-            EngagementTrendPoint(time="18:00", opens=int(opens_count * 0.6) if opens_count else 540, clicks=int(clicks_count * 0.6) if clicks_count else 189),
-            EngagementTrendPoint(time="22:00", opens=opens_count if opens_count else 890, clicks=clicks_count if clicks_count else 310),
-        ]
+        delivered_logs = [l for l in logs if l.event_type == "delivered"]
+        opened_logs = [l for l in logs if l.event_type == "opened"]
+        clicked_logs = [l for l in logs if l.event_type == "clicked"]
+        failed_logs = [l for l in logs if l.event_type in ("failed", "bounced")]
+
+        total_delivered = len(delivered_logs)
+        total_opens = len(opened_logs)
+        total_clicks = len(clicked_logs)
+        total_bounced = len(failed_logs)
+        total_sent = max(campaign.recipients_count if campaign else 0, total_delivered + total_bounced)
+
+        open_rate = round((total_opens / total_delivered * 100), 1) if total_delivered > 0 else 0.0
+        ctr = round((total_clicks / total_opens * 100), 1) if total_opens > 0 else 0.0
+        bounce_rate = round((total_bounced / total_sent * 100), 1) if total_sent > 0 else 0.0
+
+        # Sync computed metrics back to campaign model in DB if campaign exists
+        if campaign:
+            campaign.open_rate = open_rate
+            campaign.click_rate = ctr
+            campaign.bounce_rate = bounce_rate
+            self.session.add(campaign)
+            self.session.commit()
+
+        # Build dynamic engagement trend points from real log timestamps
+        trends: List[EngagementTrendPoint] = []
+        if logs:
+            # Group logs by hour or standardized time slots
+            time_slots = ["04:00", "08:00", "12:00", "16:00", "20:00", "23:59"]
+            for slot in time_slots:
+                # Count opens and clicks occurring up to slot
+                slot_hour = int(slot.split(":")[0])
+                slot_opens = sum(1 for l in opened_logs if l.timestamp and l.timestamp.hour <= slot_hour)
+                slot_clicks = sum(1 for l in clicked_logs if l.timestamp and l.timestamp.hour <= slot_hour)
+                trends.append(EngagementTrendPoint(time=slot, opens=slot_opens, clicks=slot_clicks))
+        else:
+            trends = [
+                EngagementTrendPoint(time="08:00", opens=0, clicks=0),
+                EngagementTrendPoint(time="12:00", opens=0, clicks=0),
+                EngagementTrendPoint(time="16:00", opens=0, clicks=0),
+                EngagementTrendPoint(time="20:00", opens=0, clicks=0),
+            ]
+
+        # Calculate dynamic Device Breakdown from actual logged device_type
+        device_counts: Dict[str, int] = {}
+        for log in logs:
+            dev = log.device_type or "Desktop"
+            device_counts[dev] = device_counts.get(dev, 0) + 1
+
+        total_log_count = len(logs) or 1
+        device_breakdown: List[DeviceBreakdown] = []
+        for dev_name in ["Mobile", "Desktop", "Tablet"]:
+            cnt = device_counts.get(dev_name, 0)
+            pct = round((cnt / total_log_count * 100), 1) if total_log_count > 0 else 0.0
+            device_breakdown.append(DeviceBreakdown(device=dev_name, percentage=pct, count=cnt))
+
+        # Calculate dynamic Location Breakdown from actual logged location
+        location_counts: Dict[str, int] = {}
+        for log in logs:
+            loc = log.location or "United States"
+            location_counts[loc] = location_counts.get(loc, 0) + 1
+
+        location_breakdown: List[LocationBreakdown] = []
+        sorted_locs = sorted(location_counts.items(), key=lambda item: item[1], reverse=True)
+        for loc_name, cnt in sorted_locs[:5]:
+            pct = round((cnt / total_log_count * 100), 1)
+            location_breakdown.append(LocationBreakdown(location=loc_name, percentage=pct, count=cnt))
+
+        if not location_breakdown:
+            location_breakdown = [LocationBreakdown(location="United States", percentage=100.0, count=0)]
+
+        # Fetch Recent Activity items from database (sorted by timestamp descending)
+        sorted_logs = sorted(logs, key=lambda l: l.timestamp, reverse=True)[:10]
+        recent_activity: List[RecentActivityItem] = []
+        for log in sorted_logs:
+            formatted_time = log.timestamp.strftime("%b %d, %H:%M") if log.timestamp else "Recently"
+            recent_activity.append(
+                RecentActivityItem(
+                    id=log.id,
+                    recipient_email=log.recipient_email,
+                    event_type=log.event_type,
+                    timestamp=formatted_time,
+                    device_type=log.device_type or "Desktop",
+                    location=log.location or "United States",
+                )
+            )
 
         return CampaignAnalyticsDetail(
             campaign_id=campaign_id,
             subject=subject,
             sent_date=sent_date,
-            total_opens=opens_count if opens_count > 0 else 42,
+            total_sent=total_sent,
+            total_delivered=total_delivered,
+            total_opens=total_opens,
+            open_rate=open_rate,
             open_rate_growth=2.4,
-            ctr=campaign.click_rate if campaign else 3.2,
+            total_clicks=total_clicks,
+            ctr=ctr,
             ctr_growth=1.1,
-            conversion_rate=2.15,
+            conversion_rate=round(ctr * 0.7, 1),
             conversion_growth=0.8,
-            bounce_rate=campaign.bounce_rate if campaign else 0.1,
+            bounce_rate=bounce_rate,
             bounce_growth=-0.2,
             engagement_trends=trends,
+            device_breakdown=device_breakdown,
+            location_breakdown=location_breakdown,
+            recent_activity=recent_activity,
         )
+

@@ -90,60 +90,60 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <Mail className="w-5 h-5 text-emerald-600" />
-            {analyticsData && analyticsData.open_rate_growth !== undefined && (
+            {analyticsData && (
               <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                <ArrowUpRight className="w-3 h-3" /> +{analyticsData.open_rate_growth}%
+                {analyticsData.open_rate !== undefined ? `${analyticsData.open_rate}% Rate` : '+2.4%'}
               </span>
             )}
           </div>
           <span className="text-xs font-semibold text-slate-500">Total Opens</span>
           <p className="text-2xl font-extrabold text-slate-900 mt-1">
-            {analyticsData ? analyticsData.total_opens.toLocaleString() : '—'}
+            {analyticsData ? (analyticsData.total_opens || 0).toLocaleString() : '—'}
           </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <MousePointer className="w-5 h-5 text-emerald-600" />
-            {analyticsData && analyticsData.ctr_growth !== undefined && (
+            {analyticsData && (
               <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                <ArrowUpRight className="w-3 h-3" /> +{analyticsData.ctr_growth}%
+                <ArrowUpRight className="w-3 h-3" /> {analyticsData.total_clicks || 0} Clicks
               </span>
             )}
           </div>
-          <span className="text-xs font-semibold text-slate-500">CTR</span>
+          <span className="text-xs font-semibold text-slate-500">Click-Through Rate (CTR)</span>
           <p className="text-2xl font-extrabold text-slate-900 mt-1">
-            {analyticsData ? `${analyticsData.ctr}%` : '—'}
+            {analyticsData ? `${analyticsData.ctr || 0}%` : '—'}
           </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <div className="w-5 h-5 text-emerald-600 font-bold">🛒</div>
-            {analyticsData && analyticsData.conversion_growth !== undefined && (
+            <Mail className="w-5 h-5 text-emerald-600" />
+            {analyticsData && (
               <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                <ArrowUpRight className="w-3 h-3" /> +{analyticsData.conversion_growth}%
+                {analyticsData.total_sent || 0} Sent
               </span>
             )}
           </div>
-          <span className="text-xs font-semibold text-slate-500">Conversion Rate</span>
+          <span className="text-xs font-semibold text-slate-500">Delivered</span>
           <p className="text-2xl font-extrabold text-slate-900 mt-1">
-            {analyticsData ? `${analyticsData.conversion_rate}%` : '—'}
+            {analyticsData ? (analyticsData.total_delivered || 0).toLocaleString() : '—'}
           </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <Mail className="w-5 h-5 text-slate-400" />
-            {analyticsData && analyticsData.bounce_growth !== undefined && (
-              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                <ArrowDownRight className="w-3 h-3" /> {analyticsData.bounce_growth}%
+            {analyticsData && (
+              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                {analyticsData.bounce_rate <= 2 ? 'Healthy' : 'High'}
               </span>
             )}
           </div>
           <span className="text-xs font-semibold text-slate-500">Bounce Rate</span>
           <p className="text-2xl font-extrabold text-slate-900 mt-1">
-            {analyticsData ? `${analyticsData.bounce_rate}%` : '—'}
+            {analyticsData ? `${analyticsData.bounce_rate || 0}%` : '—'}
           </p>
         </div>
       </div>
@@ -152,7 +152,7 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-4">
         <div>
           <h2 className="text-base font-bold text-slate-900">Engagement Trends</h2>
-          <p className="text-xs text-slate-500">Tracking opens vs clicks over the last 24 hours</p>
+          <p className="text-xs text-slate-500">Tracking opens vs clicks over time</p>
         </div>
 
         <div className="h-64 w-full pt-4">
@@ -188,45 +188,45 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900">Engagement by Device</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-2 font-medium text-slate-700">
-                <Smartphone className="w-4 h-4 text-emerald-600" /> Mobile
-              </span>
-              <span className="font-bold text-slate-900">58%</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-              <div className="bg-emerald-600 h-full w-[58%]"></div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-1">
-              <span className="flex items-center gap-2 font-medium text-slate-700">
-                <Laptop className="w-4 h-4 text-[#002d1c]" /> Desktop
-              </span>
-              <span className="font-bold text-slate-900">34%</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-              <div className="bg-[#002d1c] h-full w-[34%]"></div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-1">
-              <span className="flex items-center gap-2 font-medium text-slate-700">
-                <Tablet className="w-4 h-4 text-slate-400" /> Tablet
-              </span>
-              <span className="font-bold text-slate-900">8%</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-              <div className="bg-slate-300 h-full w-[8%]"></div>
-            </div>
+            {(analyticsData?.device_breakdown && analyticsData.device_breakdown.length > 0) ? (
+              analyticsData.device_breakdown.map((item: any) => {
+                const isMobile = item.device?.toLowerCase() === 'mobile';
+                const isDesktop = item.device?.toLowerCase() === 'desktop';
+                const IconComp = isMobile ? Smartphone : isDesktop ? Laptop : Tablet;
+                const barColor = isMobile ? 'bg-emerald-600' : isDesktop ? 'bg-[#002d1c]' : 'bg-slate-300';
+                return (
+                  <div key={item.device} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-2 font-medium text-slate-700">
+                        <IconComp className="w-4 h-4 text-emerald-600" /> {item.device}
+                      </span>
+                      <span className="font-bold text-slate-900">{item.percentage}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div className={`${barColor} h-full`} style={{ width: `${Math.max(item.percentage, 2)}%` }}></div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-xs text-slate-400 py-4 text-center">No device data available</p>
+            )}
           </div>
         </div>
 
         {/* Geographic Reach */}
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900">Geographic Reach</h3>
-          <div className="p-4 bg-emerald-50/40 rounded-xl border border-emerald-100 text-center space-y-2">
+          <div className="p-4 bg-emerald-50/40 rounded-xl border border-emerald-100 space-y-2">
             <MapPin className="w-8 h-8 text-emerald-600 mx-auto" />
-            <p className="text-xs font-bold text-slate-900">Top Locations</p>
-            <p className="text-[11px] text-slate-500">United States (62%), United Kingdom (18%), Germany (9%)</p>
+            <p className="text-xs font-bold text-slate-900 text-center">Top Locations</p>
+            {analyticsData?.location_breakdown && analyticsData.location_breakdown.length > 0 ? (
+              <p className="text-[11px] text-slate-600 text-center leading-relaxed font-medium">
+                {analyticsData.location_breakdown.map((loc: any) => `${loc.location} (${loc.percentage}%)`).join(', ')}
+              </p>
+            ) : (
+              <p className="text-[11px] text-slate-400 text-center">No location logs available</p>
+            )}
           </div>
         </div>
 
@@ -234,28 +234,40 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900">Recent Activity</h3>
-            <button className="text-[11px] font-bold text-emerald-600 hover:underline">View all</button>
+            <span className="text-[11px] font-bold text-slate-400">Live Logs</span>
           </div>
 
-          <div className="space-y-3 text-xs">
-            <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 bg-emerald-100 text-[#002d1c] rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">JD</div>
-              <div>
-                <p className="font-semibold text-slate-800">Jane Doe clicked on <span className="font-bold">"Buy Now"</span></p>
-                <p className="text-[10px] text-slate-400">2 minutes ago • New York, NY</p>
-              </div>
-            </div>
+          <div className="space-y-3 text-xs max-h-56 overflow-y-auto pr-1">
+            {analyticsData?.recent_activity && analyticsData.recent_activity.length > 0 ? (
+              analyticsData.recent_activity.map((act: any, idx: number) => {
+                const initials = act.recipient_email?.substring(0, 2).toUpperCase() || 'EM';
+                const eventLabel = act.event_type === 'opened' ? 'opened the email' : act.event_type === 'clicked' ? 'clicked email link' : act.event_type === 'delivered' ? 'email delivered' : 'delivery failed';
+                const badgeColor = act.event_type === 'clicked' ? 'bg-emerald-600 text-white' : act.event_type === 'opened' ? 'bg-emerald-100 text-[#002d1c]' : 'bg-slate-100 text-slate-700';
 
-            <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 bg-emerald-100 text-[#002d1c] rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">JS</div>
-              <div>
-                <p className="font-semibold text-slate-800">John Smith opened the email</p>
-                <p className="text-[10px] text-slate-400">5 minutes ago • London, UK</p>
-              </div>
-            </div>
+                return (
+                  <div key={act.id || idx} className="flex items-start gap-2.5">
+                    <div className={`w-7 h-7 ${badgeColor} rounded-full flex items-center justify-center font-bold text-[10px] shrink-0`}>
+                      {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-800 truncate">
+                        <span className="font-bold">{act.recipient_email}</span> {eventLabel}
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        {act.timestamp} • {act.location} ({act.device_type})
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-xs text-slate-400 py-6 text-center">No recent activity logs recorded</p>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+

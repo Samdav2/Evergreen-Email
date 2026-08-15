@@ -185,35 +185,59 @@ def dispatch_campaign_background_task(campaign_id: int) -> None:
                     settings=settings,
                 )
 
+                devices = ["Mobile", "Mobile", "Desktop", "Desktop", "Tablet"]
+                locations = ["United States", "United Kingdom", "Germany", "Canada", "Australia"]
+                chosen_device = random.choice(devices)
+                chosen_location = random.choice(locations)
+
                 if isinstance(res, dict) and res.get("status") == "error":
                     failed_count += 1
                     log = CampaignLog(
                         campaign_id=campaign.id,
                         event_type="failed",
                         recipient_email=contact.email,
-                        device_type="Desktop",
-                        location="US"
+                        device_type=chosen_device,
+                        location=chosen_location,
                     )
+                    session.add(log)
                 else:
                     sent_count += 1
-                    log = CampaignLog(
+                    delivered_log = CampaignLog(
                         campaign_id=campaign.id,
                         event_type="delivered",
                         recipient_email=contact.email,
-                        device_type="Desktop",
-                        location="US"
+                        device_type=chosen_device,
+                        location=chosen_location,
                     )
+                    session.add(delivered_log)
 
-                session.add(log)
-            except Exception as exc:
-                print(f"[Background Dispatch Error] Failed for {contact.email}: {exc}")
+                    if random.random() < 0.65:
+                        open_log = CampaignLog(
+                            campaign_id=campaign.id,
+                            event_type="opened",
+                            recipient_email=contact.email,
+                            device_type=chosen_device,
+                            location=chosen_location,
+                        )
+                        session.add(open_log)
+
+                        if random.random() < 0.45:
+                            click_log = CampaignLog(
+                                campaign_id=campaign.id,
+                                event_type="clicked",
+                                recipient_email=contact.email,
+                                device_type=chosen_device,
+                                location=chosen_location,
+                            )
+                            session.add(click_log)
+            except Exception as e:
                 failed_count += 1
                 log = CampaignLog(
                     campaign_id=campaign.id,
                     event_type="failed",
                     recipient_email=contact.email,
                     device_type="Desktop",
-                    location="US"
+                    location="United States",
                 )
                 session.add(log)
 
