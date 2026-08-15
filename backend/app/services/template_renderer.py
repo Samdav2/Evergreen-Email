@@ -60,8 +60,6 @@ def render_content_blocks(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="supported-color-schemes" content="light">
   <!--[if mso]>
   <noscript>
     <xml>
@@ -72,11 +70,11 @@ def render_content_blocks(
   </noscript>
   <![endif]-->
 </head>
-<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;">
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
     <tr>
-      <td align="center" style="padding:24px 16px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+      <td align="center" style="padding:20px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
           {header_html}
           {rows}
           {cta_html}
@@ -125,15 +123,15 @@ def _render_cta_section(settings: Optional[Any]) -> str:
 
     if as_button:
         return f"""<tr>
-  <td style="padding:24px;text-align:center;border-top:1px solid #f1f5f9;">
-    <a href="{website_url}" target="_blank" style="display:inline-block;background-color:#002d1c;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;font-family:sans-serif;">{cta_text} &rarr;</a>
+  <td style="padding:16px 24px;text-align:center;border-top:1px solid #e8e8e8;">
+    <a href="{website_url}" style="color:#059669;font-weight:600;font-size:14px;text-decoration:underline;font-family:sans-serif;">{cta_text}</a>
   </td>
 </tr>"""
     else:
         return f"""<tr>
-  <td style="padding:16px 24px;text-align:center;border-top:1px solid #f1f5f9;">
+  <td style="padding:16px 24px;text-align:center;border-top:1px solid #e8e8e8;">
     <p style="margin:0;font-size:14px;color:#475569;">
-      <a href="{website_url}" target="_blank" style="color:#059669;font-weight:600;text-decoration:underline;">{cta_text} &rarr;</a>
+      <a href="{website_url}" style="color:#059669;font-weight:600;text-decoration:underline;">{cta_text}</a>
     </p>
   </td>
 </tr>"""
@@ -227,7 +225,7 @@ def _render_button(content: str, styles: Dict[str, Any]) -> str:
   </v:roundrect>
   <![endif]-->
   <!--[if !mso]><!-- -->
-  <a href="{link_href}" target="_blank" style="display:inline-block;background-color:{bg};color:{color};text-decoration:none;font-weight:bold;font-size:14px;padding:12px 32px;border-radius:{br};font-family:sans-serif;">{content}</a>
+  <a href="{link_href}" style="display:inline-block;background-color:{bg};color:{color};text-decoration:none;font-weight:bold;font-size:14px;padding:12px 32px;border-radius:{br};font-family:sans-serif;">{content}</a>
   <!--<![endif]-->
 </td></tr>"""
 
@@ -245,7 +243,7 @@ def _render_divider(styles: Dict[str, Any]) -> str:
 
 
 def _render_footer_with_address(unsubscribe_url: str, settings: Optional[Any]) -> str:
-    b_name = getattr(settings, "business_name", "Evergreen Mail Inc.") if settings else "Evergreen Mail Inc."
+    b_name = getattr(settings, "business_name", "Simple Email Inc.") if settings else "Simple Email Inc."
     b_addr = getattr(settings, "business_address", "") if settings else ""
     b_city = getattr(settings, "business_city", "") if settings else ""
     b_state = getattr(settings, "business_state", "") if settings else ""

@@ -84,13 +84,14 @@ def _send_via_resend(
     from_field = f"{from_name} <{from_email}>" if from_name else from_email
     
     # Primary inbox deliverability headers
-    headers = {
-        "X-Entity-Ref-ID": f"msg-{abs(hash(subject))}",
-        "X-Auto-Response-Suppress": "OOF, AutoReply",
-        "Importance": "Normal",
-    }
+    # Avoid X-Entity-Ref-ID — Gmail treats it as a bulk/promotional tracker.
+    # Keep headers minimal and conversational.
+    headers: dict = {}
     if unsubscribe_url:
-        headers["List-Unsubscribe"] = f"<{unsubscribe_url}>"
+        # RFC 8058 requires both an HTTPS and mailto: List-Unsubscribe target
+        # for one-click unsubscribe to work correctly with Gmail.
+        mailto_unsub = f"mailto:{from_email}?subject=Unsubscribe"
+        headers["List-Unsubscribe"] = f"<{unsubscribe_url}>, <{mailto_unsub}>"
         headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
 
     params: dict = {
@@ -149,12 +150,11 @@ def _send_via_mailjet(
 
     url = "https://api.mailjet.com/v3.1/send"
     
-    headers_dict = {
-        "X-Entity-Ref-ID": f"msg-{abs(hash(subject))}",
-        "X-Auto-Response-Suppress": "OOF, AutoReply",
-    }
+    headers_dict: dict = {}
     if unsubscribe_url:
-        headers_dict["List-Unsubscribe"] = f"<{unsubscribe_url}>"
+        mailto_unsub = f"mailto:{from_email}?subject=Unsubscribe"
+        headers_dict["List-Unsubscribe"] = f"<{unsubscribe_url}>, <{mailto_unsub}>"
+        headers_dict["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
 
     import re
     effective_plain_text = plain_text or re.sub(r'<[^>]+>', '', html_content).strip()
@@ -163,7 +163,7 @@ def _send_via_mailjet(
     message = {
         "From": {
             "Email": from_email,
-            "Name": from_name or "Evergreen Mail"
+            "Name": from_name or "Simple Email"
         },
         "To": [
             {
