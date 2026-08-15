@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 from backend.app.models.campaign import Campaign, CampaignStatus
 from backend.app.models.contact import ContactStatus
 from backend.app.models.template import Template
@@ -79,6 +79,32 @@ class CampaignService:
         html = render_content_blocks(content_json, unsubscribe_url, settings=settings)
         plain = render_plain_text(content_json, settings=settings)
         return html, plain
+
+    def launch_campaign(
+        self, campaign_id: int, is_immediate: bool = True, background_tasks: Optional[Any] = None
+    ) -> CampaignRead:
+        campaign = self.campaign_repo.get_by_id(campaign_id)
+        if not campaign:
+            raise ValueError("Campaign not found")
+
+        campaign.status = (
+            CampaignStatus.ACTIVE if is_immediate else CampaignStatus.SCHEDULED
+        )
+        campaign.sent_date = datetime.utcnow().strftime("%b %d, %Y • %I:%M %p")
+
+        updated = self.campaign_repo.update(campaign)
+
+        if is_immediate:
+            if background_tasks:
+                background_tasks.add_task(dispatch_campaign_background_task, campaign_id)
+            else:
+                dispatch_campaign_background_task(campaign_id)
+
+        return CampaignRead.model_validate(updated)
+
+    def get_user_campaigns(self, owner_id: int) -> List[CampaignRead]:
+        campaigns = self.campaign_repo.get_by_owner(owner_id)
+        return [CampaignRead.model_validate(c) for c in campaigns]
 
 def dispatch_campaign_background_task(campaign_id: int) -> None:
     """
@@ -205,54 +231,3 @@ def dispatch_campaign_background_task(campaign_id: int) -> None:
         session.add(campaign)
         session.commit()
 
-
-class CampaignService:
-    def __init__(
-        self,
-        campaign_repo: CampaignRepository,
-        contact_repo: Optional[ContactRepository] = None,
-        template_repo: Optional[TemplateRepository] = None,
-        settings_repo: Optional[SettingsRepository] = None,
-    ) -> None:
-        self.campaign_repo = campaign_repo
-        self.contact_repo = contact_repo
-        self.template_repo = template_repo
-        self.settings_repo = settings_repo
-
-    def create_campaign(self, dto: CampaignCreate, owner_id: int) -> CampaignRead:
-        campaign = Campaign(
-            subject=dto.subject,
-            category_label=dto.category_label,
-            template_id=dto.template_id,
-            status=CampaignStatus.DRAFT,
-            scheduled_time=dto.scheduled_time,
-            owner_id=owner_id,
-        )
-        saved = self.campaign_repo.create(campaign)
-        return CampaignRead.model_validate(saved)
-
-    def launch_campaign(
-        self, campaign_id: int, is_immediate: bool = True, background_tasks: Optional[Any] = None
-    ) -> CampaignRead:
-        campaign = self.campaign_repo.get_by_id(campaign_id)
-        if not campaign:
-            raise ValueError("Campaign not found")
-
-        campaign.status = (
-            CampaignStatus.ACTIVE if is_immediate else CampaignStatus.SCHEDULED
-        )
-        campaign.sent_date = datetime.utcnow().strftime("%b %d, %Y • %I:%M %p")
-
-        updated = self.campaign_repo.update(campaign)
-
-        if is_immediate:
-            if background_tasks:
-                background_tasks.add_task(dispatch_campaign_background_task, campaign_id)
-            else:
-                dispatch_campaign_background_task(campaign_id)
-
-        return CampaignRead.model_validate(updated)
-
-    def get_user_campaigns(self, owner_id: int) -> List[CampaignRead]:
-        campaigns = self.campaign_repo.get_by_owner(owner_id)
-        return [CampaignRead.model_validate(c) for c in campaigns]
