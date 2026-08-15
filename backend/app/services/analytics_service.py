@@ -4,6 +4,9 @@ from backend.app.schemas.analytics import (
     AnalyticsOverview,
     CampaignAnalyticsDetail,
     EngagementTrendPoint,
+    DeviceBreakdown,
+    LocationBreakdown,
+    RecentActivityItem,
 )
 from backend.app.models.contact import Contact
 from backend.app.models.campaign import Campaign, CampaignStatus
