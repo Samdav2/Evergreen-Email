@@ -39,7 +39,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onNavigate, onSignInSucc
           <div className="w-12 h-12 bg-[#002d1c] text-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
             <Mail className="w-6 h-6 text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Evergreen Mail</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">SIMPLE EMAIL</h1>
           <p className="text-xs text-slate-500 mt-1">Marketing CRM for modern growth</p>
         </div>
 
@@ -151,7 +151,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onNavigate, onSignInSucc
 
         {/* Footer Links */}
         <div className="flex items-center justify-center gap-4 text-[11px] text-slate-400 mt-8">
-          <span>© 2024 Evergreen Mail.</span>
+          <span>© 2026 Simple Email.</span>
           <a href="#" className="hover:underline">Privacy Policy</a>
           <a href="#" className="hover:underline">Terms of Service</a>
           <a href="#" className="hover:underline">Contact Support</a>

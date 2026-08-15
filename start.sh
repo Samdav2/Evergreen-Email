@@ -21,7 +21,7 @@ echo "Starting Express frontend on :${PORT:-3000}..."
 NODE_ENV=production API_TARGET=http://127.0.0.1:8000 node dist/server.cjs &
 FRONTEND_PID=$!
 
-echo "Evergreen Mail is live."
+echo "Simple Email is live."
 
 # If either process exits, kill the other and exit
 trap "kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" SIGTERM SIGINT

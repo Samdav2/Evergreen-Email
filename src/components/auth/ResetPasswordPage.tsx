@@ -35,7 +35,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ onNavigate
           <div className="w-12 h-12 bg-[#002d1c] text-emerald-400 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
             <Trees className="w-6 h-6" />
           </div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Evergreen Mail</h1>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">SIMPLE EMAIL</h1>
           <p className="text-xs text-slate-500 mt-0.5">Recover access to your marketing CRM</p>
         </div>
 
@@ -105,7 +105,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ onNavigate
 
         {/* Footer */}
         <div className="flex items-center justify-center gap-4 text-[11px] text-slate-400 mt-10">
-          <span>© 2024 Evergreen Mail. All rights reserved.</span>
+          <span>© 2026 Simple Email. All rights reserved.</span>
           <a href="#" className="hover:underline">Privacy Policy</a>
           <a href="#" className="hover:underline">Contact Support</a>
         </div>

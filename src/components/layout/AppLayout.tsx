@@ -49,7 +49,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activePage, onNavigate, ch
             <Leaf className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-extrabold text-[#002d1c] tracking-tight leading-tight">Evergreen Mail</h1>
+            <h1 className="text-base font-extrabold text-[#002d1c] tracking-tight leading-tight">SIMPLE EMAIL</h1>
             <p className="text-[11px] font-medium text-slate-400">Marketing CRM</p>
           </div>
         </div>

@@ -23,7 +23,7 @@ services:
       - key: DEFAULT_FROM_EMAIL
         value: "onboarding@resend.dev"
       - key: DEFAULT_FROM_NAME
-        value: "Evergreen Mail"
+        value: "Simple Email"
       - key: DEFAULT_REPLY_TO
         value: ""
       - key: API_TARGET

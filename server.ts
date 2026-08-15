@@ -8,7 +8,11 @@ const API_TARGET = process.env.API_TARGET || "http://127.0.0.1:8000";
 const apiProxy = createProxyMiddleware({
   target: API_TARGET,
   changeOrigin: true,
-  pathFilter: ["/api/**", "/docs", "/openapi.json", "/redoc"],
+  pathFilter: (path: string) =>
+    path.startsWith("/api") ||
+    path.startsWith("/docs") ||
+    path === "/openapi.json" ||
+    path.startsWith("/redoc"),
 });
 
 async function startServer() {
@@ -17,7 +21,6 @@ async function startServer() {
 
   // Proxy API and OpenAPI endpoints to the Python FastAPI backend
   app.use(apiProxy);
-
 
   // Vite Integration
   if (process.env.NODE_ENV !== "production") {
@@ -36,7 +39,7 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(
-      `Evergreen Mail server on http://0.0.0.0:${PORT}`
+      `Simple Email server on http://0.0.0.0:${PORT}`
     );
     console.log(`  → API proxied to ${API_TARGET}`);
   });

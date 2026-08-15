@@ -12,7 +12,7 @@ from backend.app.api.v1 import (
 )
 
 app = FastAPI(
-    title="Evergreen Mail API",
+    title="Simple Email API",
     description="Backend Marketing CRM API service built with FastAPI, SQLModel & Pydantic.",
     version="1.0.0",
 )
@@ -36,7 +36,7 @@ def on_startup() -> None:
 def health_check() -> dict:
     return {
         "status": "online",
-        "service": "Evergreen Mail CRM Engine",
+        "service": "Simple Email CRM Engine",
         "version": "1.0.0",
     }
 

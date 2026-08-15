@@ -33,7 +33,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigate
       <div className="bg-gradient-to-r from-[#002d1c] to-[#02472d] text-white p-8 rounded-3xl shadow-sm relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-xl z-10">
           <span className="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5 border border-emerald-500/30">
-            <Sparkles className="w-3.5 h-3.5" /> Evergreen Mail CRM v1.0
+            <Sparkles className="w-3.5 h-3.5" /> SIMPLE EMAIL CRM v1.0
           </span>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
             Welcome back, {user?.full_name?.split(' ')[0] || 'there'}.

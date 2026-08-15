@@ -42,7 +42,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate, onSignUpSucc
               <div className="w-9 h-9 bg-[#002d1c] text-white rounded-lg flex items-center justify-center shadow-sm">
                 <Leaf className="w-5 h-5 text-emerald-400" />
               </div>
-              <span className="text-xl font-extrabold text-[#002d1c] tracking-tight">Evergreen Mail</span>
+              <span className="text-xl font-extrabold text-[#002d1c] tracking-tight">SIMPLE EMAIL</span>
             </div>
 
             <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight mb-4">
@@ -104,7 +104,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate, onSignUpSucc
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="jane@evergreen.com"
+                    placeholder="jane@simpleemail.com"
                     required
                     className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition"
                   />
@@ -152,7 +152,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate, onSignUpSucc
                 disabled={isLoading}
                 className="w-full bg-[#002d1c] hover:bg-[#02472d] text-white py-2.5 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition shadow-sm mt-2"
               >
-                {isLoading ? 'Creating account...' : 'Join Evergreen'}
+                {isLoading ? 'Creating account...' : 'Join SIMPLE EMAIL'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
