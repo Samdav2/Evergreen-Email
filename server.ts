@@ -8,6 +8,7 @@ const API_TARGET = process.env.API_TARGET || "http://127.0.0.1:8000";
 const apiProxy = createProxyMiddleware({
   target: API_TARGET,
   changeOrigin: true,
+  pathFilter: ["/api/**", "/docs", "/openapi.json", "/redoc"],
 });
 
 async function startServer() {
@@ -15,10 +16,8 @@ async function startServer() {
   const PORT = parseInt(process.env.PORT || "3000", 10);
 
   // Proxy API and OpenAPI endpoints to the Python FastAPI backend
-  app.use("/api", apiProxy);
-  app.use("/docs", apiProxy);
-  app.use("/openapi.json", apiProxy);
-  app.use("/redoc", apiProxy);
+  app.use(apiProxy);
+
 
   // Vite Integration
   if (process.env.NODE_ENV !== "production") {
