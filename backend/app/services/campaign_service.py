@@ -12,6 +12,8 @@ from backend.app.services.email_service import send_campaign_email
 from backend.app.services.template_renderer import (
     render_content_blocks,
     render_plain_text,
+    extract_first_name,
+    _replace_personalization_tags,
 )
 from backend.app.schemas.campaign import CampaignCreate, CampaignRead
 from backend.app.core.settings import APP_URL
@@ -174,12 +176,36 @@ def dispatch_campaign_background_task(campaign_id: int) -> None:
             try:
                 encoded = contact.email.replace("@", "%40")
                 unsubscribe_url = f"{APP_URL}/api/v1/unsubscribe?email={encoded}"
-                html_body = render_content_blocks(content_json, unsubscribe_url, settings=settings)
-                plain_text = render_plain_text(content_json, settings=settings)
+                
+                c_first_name = getattr(contact, "first_name", None)
+                c_last_name = getattr(contact, "last_name", None)
+                c_company = getattr(contact, "company", None)
+                first_name = extract_first_name(contact.email, c_first_name)
+                
+                recipient_context = {
+                    "first_name": first_name,
+                    "last_name": c_last_name or "",
+                    "email": contact.email,
+                    "company": c_company or "",
+                    "unsubscribe_url": unsubscribe_url,
+                }
+                
+                personalized_subject = _replace_personalization_tags(campaign.subject, recipient_context)
+                html_body = render_content_blocks(
+                    content_json,
+                    unsubscribe_url,
+                    settings=settings,
+                    recipient_context=recipient_context,
+                )
+                plain_text = render_plain_text(
+                    content_json,
+                    settings=settings,
+                    recipient_context=recipient_context,
+                )
 
                 res = send_campaign_email(
                     to_email=contact.email,
-                    subject=campaign.subject,
+                    subject=personalized_subject,
                     html_body=html_body,
                     plain_text=plain_text,
                     unsubscribe_url=unsubscribe_url,

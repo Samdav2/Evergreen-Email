@@ -31,6 +31,17 @@ export const TemplateDesignerPage: React.FC = () => {
   const [savedTemplates, setSavedTemplates] = useState<EmailTemplate[]>([]);
   const [loadedTemplateId, setLoadedTemplateId] = useState<number | null>(null);
 
+  const replacePreviewTags = (text: string) => {
+    if (!text) return '';
+    return text
+      .replace(/\{\{first_name\}\}/gi, 'Samuel')
+      .replace(/\{\{name\}\}/gi, 'Samuel David')
+      .replace(/\{\{last_name\}\}/gi, 'David')
+      .replace(/\{\{email\}\}/gi, 'samuel@example.com')
+      .replace(/\{\{company\}\}/gi, 'Acme Inc.')
+      .replace(/\{\{unsubscribe_url\}\}/gi, '#');
+  };
+
   useEffect(() => {
     fetchSettings().then(setSystemSettings).catch(console.error);
     loadSavedTemplates();
@@ -329,7 +340,7 @@ export const TemplateDesignerPage: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex-1 min-w-[200px] max-w-sm">
+          <div className="flex-1 min-w-[240px] max-w-md flex items-center gap-1.5">
             <input
               type="text"
               value={subjectLine}
@@ -337,6 +348,22 @@ export const TemplateDesignerPage: React.FC = () => {
               placeholder="Subject line..."
               className="w-full text-xs font-semibold px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600"
             />
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  setSubjectLine((prev) => (prev ? prev + ' ' + e.target.value : e.target.value));
+                  e.target.value = '';
+                }
+              }}
+              className="text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg px-2 py-1.5 cursor-pointer focus:outline-none hover:bg-emerald-100 transition"
+              title="Insert Personalization Snippet"
+            >
+              <option value="">+ Snippet</option>
+              <option value="{{first_name}}">&#123;&#123;first_name&#125;&#125;</option>
+              <option value="{{name}}">&#123;&#123;name&#125;&#125;</option>
+              <option value="{{email}}">&#123;&#123;email&#125;&#125;</option>
+              <option value="{{company}}">&#123;&#123;company&#125;&#125;</option>
+            </select>
           </div>
 
           <div className="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
@@ -445,7 +472,9 @@ export const TemplateDesignerPage: React.FC = () => {
                           padding: block.styles.padding || '12px',
                         }}
                         className="leading-relaxed text-slate-800"
-                        dangerouslySetInnerHTML={{ __html: block.content }}
+                        dangerouslySetInnerHTML={{
+                          __html: viewMode === 'preview' ? replacePreviewTags(block.content) : block.content
+                        }}
                       />
                     )}
 
@@ -477,7 +506,7 @@ export const TemplateDesignerPage: React.FC = () => {
                           }}
                           className="px-6 py-2.5 font-bold text-xs shadow-xs inline-block"
                         >
-                          {block.content}
+                          {viewMode === 'preview' ? replacePreviewTags(block.content) : block.content}
                         </a>
                       </div>
                     )}
@@ -650,6 +679,33 @@ export const TemplateDesignerPage: React.FC = () => {
                         >
                           <Link className="w-3.5 h-3.5" /> Add Link
                         </button>
+                      </div>
+
+                      {/* Personalization Tag Insert Pills */}
+                      <div className="pt-2 border-t border-slate-200/60">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Insert Dynamic Tag:</span>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {[
+                            { tag: '{{first_name}}', label: 'First Name' },
+                            { tag: '{{name}}', label: 'Full Name' },
+                            { tag: '{{email}}', label: 'Email' },
+                            { tag: '{{company}}', label: 'Company' },
+                          ].map(({ tag, label }) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => {
+                                if (selectedBlock) {
+                                  handleUpdateSelectedContent(selectedBlock.content ? `${selectedBlock.content} ${tag}` : tag);
+                                }
+                              }}
+                              className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-mono font-semibold rounded border border-emerald-200 transition"
+                              title={`Insert ${label}`}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
                       </div>
 
                       {/* Font Size Selector */}

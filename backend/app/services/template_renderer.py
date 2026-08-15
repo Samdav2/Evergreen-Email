@@ -1,15 +1,57 @@
 import json
 from typing import List, Dict, Any, Optional
 
+import re
+
+def extract_first_name(email: str, first_name: Optional[str] = None) -> str:
+    if first_name and first_name.strip():
+        return first_name.strip().capitalize()
+    if not email:
+        return "there"
+    username = email.split("@")[0]
+    clean = re.split(r'[\._\+\-]', username)[0]
+    clean = re.sub(r'\d+$', '', clean)
+    if clean and len(clean) >= 2:
+        return clean.capitalize()
+    return "there"
+
+def _replace_personalization_tags(text: str, recipient_context: Optional[Dict[str, str]] = None) -> str:
+    if not text:
+        return text
+    ctx = recipient_context or {}
+    first_name = ctx.get("first_name") or "there"
+    email = ctx.get("email") or ""
+    last_name = ctx.get("last_name") or ""
+    company = ctx.get("company") or ""
+    name = ctx.get("name") or (f"{first_name} {last_name}".strip() if last_name else first_name)
+    unsubscribe_url = ctx.get("unsubscribe_url") or ""
+
+    replacements = {
+        "{{first_name}}": first_name,
+        "{{First_Name}}": first_name,
+        "{{FIRST_NAME}}": first_name,
+        "{{name}}": name,
+        "{{Name}}": name,
+        "{{last_name}}": last_name,
+        "{{email}}": email,
+        "{{company}}": company,
+        "{{unsubscribe_url}}": unsubscribe_url,
+    }
+    result = text
+    for tag, val in replacements.items():
+        result = result.replace(tag, val)
+    return result
+
 def render_content_blocks(
     content_json: str,
     unsubscribe_url: str = "",
-    settings: Optional[Any] = None
+    settings: Optional[Any] = None,
+    recipient_context: Optional[Dict[str, str]] = None
 ) -> str:
     blocks: List[Dict[str, Any]] = json.loads(content_json) if content_json else []
     
     header_html = _render_header_banner(settings)
-    rows = "".join(_render_block(b, unsubscribe_url) for b in blocks)
+    rows = "".join(_render_block(b, unsubscribe_url, recipient_context) for b in blocks)
     cta_html = _render_cta_section(settings)
     footer_html = _render_footer_with_address(unsubscribe_url, settings)
 
@@ -97,9 +139,9 @@ def _render_cta_section(settings: Optional[Any]) -> str:
 </tr>"""
 
 
-def _render_block(block: Dict[str, Any], unsubscribe_url: str) -> str:
+def _render_block(block: Dict[str, Any], unsubscribe_url: str, recipient_context: Optional[Dict[str, str]] = None) -> str:
     btype = block.get("type", "text")
-    content = block.get("content", "")
+    content = _replace_personalization_tags(block.get("content", ""), recipient_context)
     styles = block.get("styles", {})
 
     if btype == "text":
@@ -233,7 +275,11 @@ def _render_footer_with_address(unsubscribe_url: str, settings: Optional[Any]) -
 
 import re
 
-def render_plain_text(content_json: str, settings: Optional[Any] = None) -> str:
+def render_plain_text(
+    content_json: str,
+    settings: Optional[Any] = None,
+    recipient_context: Optional[Dict[str, str]] = None
+) -> str:
     if not content_json:
         return ""
     try:
@@ -246,11 +292,11 @@ def render_plain_text(content_json: str, settings: Optional[Any] = None) -> str:
     if settings:
         h_title = getattr(settings, "header_title", None)
         if h_title:
-            parts.append(h_title)
+            parts.append(_replace_personalization_tags(h_title, recipient_context))
 
     for b in blocks:
         t = b.get("type", "")
-        c = b.get("content", "")
+        c = _replace_personalization_tags(b.get("content", ""), recipient_context)
         st = b.get("styles", {})
         if t == "text":
             clean = re.sub(r'<br\s*/?>', '\n', c)
