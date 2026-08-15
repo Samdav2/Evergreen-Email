@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from typing import Any, List, Optional
 from backend.app.models.campaign import Campaign, CampaignStatus

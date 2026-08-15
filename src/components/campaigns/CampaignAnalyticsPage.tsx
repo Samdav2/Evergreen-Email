@@ -79,7 +79,17 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
       {/* Campaign Metadata Header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">SENT</span>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+            analyticsData?.status === 'Failed'
+              ? 'bg-red-100 text-red-700'
+              : analyticsData?.status === 'Scheduled'
+              ? 'bg-blue-100 text-blue-700'
+              : analyticsData?.status === 'Draft'
+              ? 'bg-slate-100 text-slate-600'
+              : 'bg-emerald-100 text-emerald-800'
+          }`}>
+            {(analyticsData?.status || 'SENT').toUpperCase()}
+          </span>
           <span className="text-xs text-slate-400 font-medium">• {analyticsData?.sent_date || '—'}</span>
         </div>
         <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">{analyticsData?.subject || 'Campaign Analytics'}</h1>
