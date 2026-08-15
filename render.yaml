@@ -1,0 +1,41 @@
+# render.yaml — Render Blueprint (Infrastructure as Code)
+# https://docs.render.com/blueprint-spec
+
+services:
+  # ─── Web Service (Express frontend + FastAPI backend) ────────
+  - type: web
+    name: evergreen-mail
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    repo: https://github.com/Samdav2/Evergreen-Email.git
+    branch: main
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: APP_URL
+        generateValue: false
+        sync: false
+      - key: RESEND_API_KEY
+        generateValue: false
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        value: "onboarding@resend.dev"
+      - key: DEFAULT_FROM_NAME
+        value: "Evergreen Mail"
+      - key: DEFAULT_REPLY_TO
+        value: ""
+      - key: API_TARGET
+        value: "http://127.0.0.1:8000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: evergreen-db
+          property: connectionURI
+
+  # ─── PostgreSQL Database (optional but recommended) ──────────
+  databases:
+    - name: evergreen-db
+      plan: free
+      databaseName: evergreen_mail
+      user: evergreen

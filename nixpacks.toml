@@ -14,4 +14,4 @@ cmds = [
 cmds = ["npm run build"]
 
 [start]
-cmd = "uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 & sleep 3 && NODE_ENV=production API_TARGET=http://127.0.0.1:8000 node dist/server.cjs"
+cmd = "bash start.sh"
