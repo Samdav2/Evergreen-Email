@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, Trash2, Users, Info, Loader2, RefreshCw, ChevronDown } from 'lucide-react';
 import { Contact, PaginatedContacts } from '../../types';
-import { fetchContacts, importManualContacts, uploadContactsFile } from '../../api/client';
+import { fetchContacts, importManualContacts, uploadContactsFile, deleteAllContacts } from '../../api/client';
 
 export const ImportAudiencePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -121,6 +121,21 @@ export const ImportAudiencePage: React.FC = () => {
     setContacts(prev => prev.filter(c => c.id !== id));
     setTotalContacts(prev => Math.max(0, prev - 1));
   };
+
+  const handleDeleteAll = async () => {
+    if (!window.confirm('Are you sure you want to delete all audience contacts? This action cannot be undone.')) return;
+    try {
+      const res = await deleteAllContacts();
+      setContacts([]);
+      setTotalContacts(0);
+      setHasMore(false);
+      setPage(1);
+      showToast('success', res.message || 'All audience contacts deleted successfully');
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to delete audience contacts');
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -279,12 +294,12 @@ export const ImportAudiencePage: React.FC = () => {
             </span>
           </div>
 
-          {contacts.length > 0 && (
+          {(contacts.length > 0 || totalContacts > 0) && (
             <button
-              onClick={() => { setContacts([]); setTotalContacts(0); setHasMore(false); setPage(1); }}
-              className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition"
+              onClick={handleDeleteAll}
+              className="flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition"
             >
-              Clear List
+              <Trash2 className="w-3.5 h-3.5" /> Delete All Audience
             </button>
           )}
         </div>

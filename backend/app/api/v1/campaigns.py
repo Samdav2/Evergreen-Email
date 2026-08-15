@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from backend.app.schemas.campaign import CampaignCreate, CampaignRead, CampaignLaunchRequest
 from backend.app.services.campaign_service import CampaignService
 from backend.app.dependencies import get_campaign_service, get_current_user_id
@@ -24,10 +24,12 @@ def create_campaign(
 @router.post("/launch", response_model=CampaignRead)
 def launch_campaign(
     dto: CampaignLaunchRequest,
+    background_tasks: BackgroundTasks,
     campaign_service: CampaignService = Depends(get_campaign_service)
 ) -> CampaignRead:
     try:
         is_immediate = dto.schedule_option == "immediate"
-        return campaign_service.launch_campaign(dto.campaign_id, is_immediate)
+        return campaign_service.launch_campaign(dto.campaign_id, is_immediate, background_tasks=background_tasks)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+

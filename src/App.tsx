@@ -13,6 +13,8 @@ import { CampaignHistoryPage } from './components/campaigns/CampaignHistoryPage'
 import { CampaignAnalyticsPage } from './components/campaigns/CampaignAnalyticsPage';
 import { RecipientListPage } from './components/campaigns/RecipientListPage';
 
+import { SettingsPage } from './components/settings/SettingsPage';
+
 function ProtectedApp({ onNavigate, activePage, selectedCampaignId, onSelectCampaignAnalytics }: {
   onNavigate: (page: ActivePage) => void;
   activePage: ActivePage;
@@ -51,23 +53,7 @@ function ProtectedApp({ onNavigate, activePage, selectedCampaignId, onSelectCamp
         <RecipientListPage onNavigate={onNavigate} />
       )}
 
-      {activePage === 'settings' && (
-        <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-xs max-w-2xl space-y-6">
-          <h1 className="text-xl font-bold text-slate-900">CRM Settings & Integrations</h1>
-          <div className="space-y-4 text-xs text-slate-600">
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="font-bold text-slate-900 text-sm mb-1">Python FastAPI + SQLModel Engine</p>
-              <p className="text-slate-500">
-                Backend API service structured in <code className="bg-slate-200 px-1.5 py-0.5 rounded text-slate-800">/backend/app</code> with repositories, services, SQLModel models, schemas, and FastAPI routers.
-              </p>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="font-bold text-slate-900 text-sm mb-1">API Endpoint Proxy Base</p>
-              <p className="text-slate-500">Base URL: <code className="bg-slate-200 px-1.5 py-0.5 rounded text-slate-800">http://localhost:3000/api/v1</code></p>
-            </div>
-          </div>
-        </div>
-      )}
+      {activePage === 'settings' && <SettingsPage />}
     </AppLayout>
   );
 }

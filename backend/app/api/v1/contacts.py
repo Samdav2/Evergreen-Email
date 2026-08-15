@@ -43,3 +43,13 @@ def upload_contacts_file(
         return contact_service.parse_uploaded_file(file, current_user_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/all")
+def delete_all_contacts(
+    current_user_id: int = Depends(get_current_user_id),
+    contact_service: ContactService = Depends(get_contact_service),
+) -> dict:
+    count = contact_service.delete_all_contacts(current_user_id)
+    return {"status": "success", "deleted_count": count, "message": f"Successfully deleted {count} contacts."}
+

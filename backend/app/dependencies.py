@@ -7,11 +7,13 @@ from backend.app.repositories.user_repository import UserRepository
 from backend.app.repositories.contact_repository import ContactRepository
 from backend.app.repositories.template_repository import TemplateRepository
 from backend.app.repositories.campaign_repository import CampaignRepository
+from backend.app.repositories.settings_repository import SettingsRepository
 from backend.app.services.auth_service import AuthService
 from backend.app.services.contact_service import ContactService
 from backend.app.services.template_service import TemplateService
 from backend.app.services.campaign_service import CampaignService
 from backend.app.services.analytics_service import AnalyticsService
+from backend.app.services.settings_service import SettingsService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
@@ -38,6 +40,12 @@ def get_campaign_repository(
     return CampaignRepository(session)
 
 
+def get_settings_repository(
+    session: Session = Depends(get_session),
+) -> SettingsRepository:
+    return SettingsRepository(session)
+
+
 def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> AuthService:
@@ -60,12 +68,21 @@ def get_campaign_service(
     campaign_repo: CampaignRepository = Depends(get_campaign_repository),
     contact_repo: ContactRepository = Depends(get_contact_repository),
     template_repo: TemplateRepository = Depends(get_template_repository),
+    settings_repo: SettingsRepository = Depends(get_settings_repository),
 ) -> CampaignService:
-    return CampaignService(campaign_repo, contact_repo, template_repo)
+    return CampaignService(campaign_repo, contact_repo, template_repo, settings_repo)
 
 
-def get_analytics_service() -> AnalyticsService:
-    return AnalyticsService()
+def get_settings_service(
+    settings_repo: SettingsRepository = Depends(get_settings_repository),
+) -> SettingsService:
+    return SettingsService(settings_repo)
+
+
+def get_analytics_service(
+    session: Session = Depends(get_session),
+) -> AnalyticsService:
+    return AnalyticsService(session)
 
 
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:

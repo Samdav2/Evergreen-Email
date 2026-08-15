@@ -42,9 +42,12 @@ export interface ContentBlock {
     backgroundColor?: string;
     fontSize?: string;
     fontWeight?: string;
-    textAlign?: 'left' | 'center' | 'right';
+    textAlign?: 'left' | 'center' | 'right' | 'justify';
     padding?: string;
     borderRadius?: string;
+    linkUrl?: string;
+    altText?: string;
+    alt?: string;
   };
 }
 

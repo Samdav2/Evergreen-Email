@@ -50,6 +50,13 @@ export async function uploadContactsFile(file: File) {
   return res.json();
 }
 
+export async function deleteAllContacts() {
+  return request<{ status: string; deleted_count: number; message: string }>(`${API_BASE}/contacts/all`, {
+    method: 'DELETE',
+  });
+}
+
+
 export async function fetchTemplates(): Promise<EmailTemplate[]> {
   return request(`${API_BASE}/templates`);
 }
@@ -57,6 +64,13 @@ export async function fetchTemplates(): Promise<EmailTemplate[]> {
 export async function createTemplate(data: { name: string; subject_line: string; content_json: string; category?: string }) {
   return request(`${API_BASE}/templates`, {
     method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateTemplate(id: number, data: { name?: string; subject_line?: string; content_json?: string; category?: string }) {
+  return request(`${API_BASE}/templates/${id}`, {
+    method: 'PUT',
     body: JSON.stringify(data),
   });
 }
@@ -124,4 +138,22 @@ export async function resetPassword(email: string) {
     throw new Error(body.detail || 'Reset password request failed');
   }
   return res.json();
+}
+
+export async function fetchSettings() {
+  return request(`${API_BASE}/settings`);
+}
+
+export async function updateSettings(data: any) {
+  return request(`${API_BASE}/settings`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function sendTestEmail(to_email: string, provider: string) {
+  return request(`${API_BASE}/settings/test-email`, {
+    method: 'POST',
+    body: JSON.stringify({ to_email, provider }),
+  });
 }

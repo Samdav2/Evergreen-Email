@@ -133,3 +133,6 @@ class ContactService:
             page_size=page_size,
             has_next=(skip + page_size) < total,
         )
+
+    def delete_all_contacts(self, owner_id: int) -> int:
+        return self.contact_repo.delete_all_by_owner(owner_id)

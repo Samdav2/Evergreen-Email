@@ -3,6 +3,7 @@ from backend.app.models.contact import Contact, ContactBase, ContactStatus
 from backend.app.models.template import Template, TemplateBase
 from backend.app.models.campaign import Campaign, CampaignBase, CampaignStatus
 from backend.app.models.analytics import CampaignLog, CampaignLogBase
+from backend.app.models.settings import SystemSettings, SystemSettingsBase
 
 __all__ = [
     "User",
@@ -17,4 +18,6 @@ __all__ = [
     "CampaignStatus",
     "CampaignLog",
     "CampaignLogBase",
+    "SystemSettings",
+    "SystemSettingsBase",
 ]
