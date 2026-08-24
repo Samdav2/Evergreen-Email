@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlmodel import Session, select, func
+from sqlmodel import Session, select, func, delete
 from backend.app.models.contact import Contact, ContactStatus
 from backend.app.repositories.base_repository import BaseRepository
 
@@ -44,11 +44,9 @@ class ContactRepository(BaseRepository[Contact]):
         return {row[0].lower() for row in self.session.exec(statement).all()}
 
     def delete_all_by_owner(self, owner_id: int) -> int:
-        statement = select(Contact).where(Contact.owner_id == owner_id)
-        contacts = self.session.exec(statement).all()
-        count = len(contacts)
-        for contact in contacts:
-            self.session.delete(contact)
+        statement = delete(Contact).where(Contact.owner_id == owner_id)
+        result = self.session.exec(statement)
         self.session.commit()
-        return count
+        return result.rowcount
+
 
