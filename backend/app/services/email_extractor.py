@@ -117,6 +117,8 @@ def extract_from_csv(content: bytes) -> List[Dict[str, str]]:
     encodings = ["utf-8", "utf-8-sig", "latin-1", "iso-8859-1", "cp1252", "utf-16"]
     delimiters = [",", "\t", ";", "|"]
 
+    has_at_symbol = b"@" in content
+
     for enc in encodings:
         best_df = None
         best_cols = 0
@@ -126,14 +128,12 @@ def extract_from_csv(content: bytes) -> List[Dict[str, str]]:
                     BytesIO(content),
                     encoding=enc,
                     sep=delim,
-                    engine="python",
                     on_bad_lines="skip",
                 )
                 ncols = df.shape[1]
                 if ncols == 0:
                     continue
-                has_at = df.to_string(index=False).count("@") > 0
-                if ncols >= 2 and has_at:
+                if ncols >= 2 and has_at_symbol:
                     return _extract_from_dataframe(df)
                 if ncols > best_cols:
                     best_cols = ncols
@@ -160,23 +160,25 @@ def _extract_from_dataframe(df: pd.DataFrame) -> List[Dict[str, str]]:
 
     email_col = None
     for col in df.columns:
-        if col.strip().lower() == "email":
+        if str(col).strip().lower() == "email":
             email_col = col
             break
 
     first_name_col = next(
-        (c for c in df.columns if "first" in c.lower() and "name" in c.lower()), None
-    )
-    last_name_col = next(
-        (c for c in df.columns if "last" in c.lower() and "name" in c.lower()), None
+        (c for c in df.columns if "first" in str(c).lower() and "name" in str(c).lower()), None
     )
     company_col = next(
-        (c for c in df.columns if "company" in c.lower() or "org" in c.lower()), None
+        (c for c in df.columns if "company" in str(c).lower() or "org" in str(c).lower()), None
     )
 
+    records = df.to_dict(orient="records")
+
     if email_col:
-        for _, row in df.iterrows():
-            email = str(row[email_col]).strip().lower()
+        for row in records:
+            raw_email = row.get(email_col)
+            if pd.isna(raw_email):
+                continue
+            email = str(raw_email).strip().lower()
             if email and email != "nan" and email not in seen and "@" in email:
                 seen.add(email)
                 contact: Dict[str, str] = {
@@ -185,17 +187,23 @@ def _extract_from_dataframe(df: pd.DataFrame) -> List[Dict[str, str]]:
                     "company": "",
                 }
                 if first_name_col:
-                    val = str(row[first_name_col]).strip()
-                    if val and val.lower() != "nan":
-                        contact["first_name"] = val
+                    val = row.get(first_name_col)
+                    if not pd.isna(val):
+                        v_str = str(val).strip()
+                        if v_str and v_str.lower() != "nan":
+                            contact["first_name"] = v_str
                 if company_col:
-                    val = str(row[company_col]).strip()
-                    if val and val.lower() != "nan":
-                        contact["company"] = val
+                    val = row.get(company_col)
+                    if not pd.isna(val):
+                        v_str = str(val).strip()
+                        if v_str and v_str.lower() != "nan":
+                            contact["company"] = v_str
                 contacts.append(contact)
     else:
-        for _, row in df.iterrows():
-            for val in row:
+        for row in records:
+            for val in row.values():
+                if pd.isna(val):
+                    continue
                 s = str(val).strip().lower()
                 if s and s != "nan" and "@" in s and s not in seen:
                     seen.add(s)

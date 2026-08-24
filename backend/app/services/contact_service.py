@@ -28,7 +28,7 @@ class ContactService:
         ]
         existing_contacts = self.contact_repo.get_all_emails_by_owner(owner_id)
 
-        processed_contacts: List[ContactRead] = []
+        contacts_to_create: List[Contact] = []
         valid_count = 0
         duplicate_count = 0
         invalid_count = 0
@@ -54,8 +54,10 @@ class ContactService:
                 status=status,
                 owner_id=owner_id,
             )
-            saved = self.contact_repo.create(contact)
-            processed_contacts.append(ContactRead.model_validate(saved))
+            contacts_to_create.append(contact)
+
+        saved_contacts = self.contact_repo.create_many(contacts_to_create)
+        processed_contacts = [ContactRead.model_validate(c) for c in saved_contacts]
 
         return ContactImportSummary(
             total_detected=len(lines),
@@ -80,7 +82,7 @@ class ContactService:
             raise ValueError("No email addresses found in the file.")
 
         existing_set = self.contact_repo.get_all_emails_by_owner(owner_id)
-        processed: List[ContactRead] = []
+        contacts_to_create: List[Contact] = []
         valid_count = 0
         duplicate_count = 0
         invalid_count = 0
@@ -108,8 +110,10 @@ class ContactService:
                 status=status,
                 owner_id=owner_id,
             )
-            saved = self.contact_repo.create(contact)
-            processed.append(ContactRead.model_validate(saved))
+            contacts_to_create.append(contact)
+
+        saved_contacts = self.contact_repo.create_many(contacts_to_create)
+        processed = [ContactRead.model_validate(c) for c in saved_contacts]
 
         return ContactImportSummary(
             total_detected=total_detected,

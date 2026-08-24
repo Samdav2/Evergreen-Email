@@ -50,8 +50,9 @@ def check_magic_bytes(content: bytes, ext: str) -> Tuple[bool, str]:
     sigs = MAGIC_SIGNATURES.get(ext)
     if not sigs:
         return True, ""
+    header = content[:1024]
     for sig in sigs:
-        if content[: len(sig)] == sig or content.find(sig) != -1:
+        if header[: len(sig)] == sig or header.find(sig) != -1:
             return True, ""
     return False, f"File content does not match expected format for .{ext}"
 

@@ -23,6 +23,15 @@ class BaseRepository(Generic[T]):
         self.session.refresh(entity)
         return entity
 
+    def create_many(self, entities: List[T], batch_size: int = 1000) -> List[T]:
+        if not entities:
+            return []
+        for i in range(0, len(entities), batch_size):
+            chunk = entities[i : i + batch_size]
+            self.session.add_all(chunk)
+            self.session.commit()
+        return entities
+
     def update(self, entity: T) -> T:
         self.session.add(entity)
         self.session.commit()
