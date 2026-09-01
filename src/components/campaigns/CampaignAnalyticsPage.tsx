@@ -13,6 +13,7 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
   const [activeTab, setActiveTab] = useState<'analytics' | 'recipients' | 'preview'>('analytics');
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     loadAnalytics();
@@ -20,11 +21,40 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
 
   const loadAnalytics = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       const data = await fetchCampaignAnalytics(campaignId);
       setAnalyticsData(data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Analytics load error:', err);
+      setErrorMessage(err?.message || 'Unable to load real-time campaign analytics.');
+      // Provide fallback analytics data so page renders gracefully
+      setAnalyticsData({
+        subject: 'Campaign Performance Overview',
+        sent_date: 'Recently',
+        status: 'Sent',
+        total_sent: 0,
+        total_delivered: 0,
+        total_opens: 0,
+        open_rate: 0,
+        total_clicks: 0,
+        ctr: 0,
+        bounce_rate: 0,
+        engagement_trends: [
+          { time: '08:00', opens: 0, clicks: 0 },
+          { time: '12:00', opens: 0, clicks: 0 },
+          { time: '16:00', opens: 0, clicks: 0 },
+          { time: '20:00', opens: 0, clicks: 0 },
+        ],
+        device_breakdown: [
+          { device: 'Desktop', percentage: 100, count: 0 },
+          { device: 'Mobile', percentage: 0, count: 0 },
+        ],
+        location_breakdown: [
+          { location: 'United States', percentage: 100, count: 0 }
+        ],
+        recent_activity: []
+      });
     } finally {
       setIsLoading(false);
     }
@@ -32,9 +62,10 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
-        <span className="ml-2 text-sm text-slate-500">Loading analytics...</span>
+      <div className="flex flex-col items-center justify-center py-24 space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <span className="text-sm font-semibold text-slate-600">Loading campaign analytics...</span>
+        <span className="text-xs text-slate-400">Fetching opens, clicks, and recipient engagement logs</span>
       </div>
     );
   }
@@ -43,6 +74,20 @@ export const CampaignAnalyticsPage: React.FC<CampaignAnalyticsPageProps> = ({ ca
 
   return (
     <div className="space-y-6">
+      {errorMessage && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold">Notice:</span> {errorMessage} (Displaying default metrics overview)
+          </div>
+          <button
+            onClick={loadAnalytics}
+            className="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1 rounded-lg transition"
+          >
+            Retry Connection
+          </button>
+        </div>
+      )}
+
       {/* Top Header Tabs & Actions */}
       <div className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-200 pb-4">
         <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">

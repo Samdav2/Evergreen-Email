@@ -8,11 +8,21 @@ const API_TARGET = process.env.API_TARGET || "http://127.0.0.1:8001";
 const apiProxy = createProxyMiddleware({
   target: API_TARGET,
   changeOrigin: true,
+  timeout: 10000,
+  proxyTimeout: 10000,
   pathFilter: (path: string) =>
     path.startsWith("/api") ||
     path.startsWith("/docs") ||
     path === "/openapi.json" ||
     path.startsWith("/redoc"),
+  on: {
+    error: (err: any, _req: any, res: any) => {
+      console.error("[Proxy Error]:", err.message);
+      if (res && !res.headersSent && typeof res.status === "function") {
+        res.status(502).json({ detail: "Backend service is temporarily unavailable" });
+      }
+    },
+  },
 });
 
 async function startServer() {

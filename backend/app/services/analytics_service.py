@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from sqlmodel import Session, select, func
 from backend.app.schemas.analytics import (
     AnalyticsOverview,
@@ -65,6 +65,12 @@ class AnalyticsService:
 
     def get_campaign_detail(self, campaign_id: int) -> CampaignAnalyticsDetail:
         campaign = self.session.get(Campaign, campaign_id)
+        if not campaign:
+            # Fall back to latest campaign if campaign_id is default or missing
+            latest_campaign = self.session.exec(select(Campaign).order_by(Campaign.id.desc())).first()
+            if latest_campaign:
+                campaign = latest_campaign
+                campaign_id = campaign.id
 
         # Retrieve all campaign logs for this specific campaign from database
         logs_query = select(CampaignLog).where(CampaignLog.campaign_id == campaign_id)
