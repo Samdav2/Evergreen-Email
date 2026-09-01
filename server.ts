@@ -4,7 +4,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
-const API_TARGET = process.env.API_TARGET || "http://127.0.0.1:8000";
+const API_TARGET = process.env.API_TARGET || "http://127.0.0.1:8001";
 const apiProxy = createProxyMiddleware({
   target: API_TARGET,
   changeOrigin: true,

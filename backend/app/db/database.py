@@ -10,8 +10,13 @@ logger = logging.getLogger("uvicorn.error")
 # Load environment variables from .env file
 load_dotenv()
 
-# Get database connection string from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./evergreen_mail.db")
+# Get database connection string from environment (Railway PostgreSQL sets DATABASE_URL, DATABASE_PRIVATE_URL, or DATABASE_PUBLIC_URL)
+DATABASE_URL = (
+    os.getenv("DATABASE_URL")
+    or os.getenv("DATABASE_PRIVATE_URL")
+    or os.getenv("DATABASE_PUBLIC_URL")
+    or "sqlite:///./evergreen_mail.db"
+)
 
 # SQLAlchemy requires postgresql:// instead of legacy postgres:// scheme
 if DATABASE_URL.startswith("postgres://"):
@@ -21,13 +26,18 @@ if DATABASE_URL.startswith("postgres://"):
 if "supabase.co" in DATABASE_URL and "pooler.supabase.com" not in DATABASE_URL:
     print(
         "\n[DATABASE WARNING] You are using Supabase Direct connection domain (db.xxx.supabase.co).\n"
-        "Direct domain is IPv6-only. Platforms like Render do not support IPv6 outbound network traffic.\n"
+        "Direct domain is IPv6-only. Platforms like Render/Railway do not support IPv6 outbound network traffic.\n"
         "FIX: In Supabase Dashboard -> Project Settings -> Database -> Connection String -> Connection Pooler,\n"
         "use the Pooler connection string (host: aws-0-xxx.pooler.supabase.com, port: 6543 or 5432).\n"
     )
 
 # Configure connection args based on database engine
 is_sqlite = DATABASE_URL.startswith("sqlite")
+if is_sqlite:
+    db_path = DATABASE_URL.replace("sqlite:///", "")
+    if db_path and not db_path.startswith(":memory:"):
+        os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+
 connect_args = {"check_same_thread": False} if is_sqlite else {}
 
 # Create engine with pool_pre_ping to handle dropped remote PostgreSQL connections

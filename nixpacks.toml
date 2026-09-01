@@ -2,7 +2,7 @@
 # Dual runtime: Python 3 (FastAPI) + Node.js 22 (Express + Vite build)
 
 [phases.setup]
-nixPkgs = ["python314", "nodejs_22", "npm-10_x", "gcc", "file"]
+nixPkgs = ["python312", "nodejs_22", "npm-10_x", "gcc", "file", "curl"]
 
 [phases.install]
 cmds = [
