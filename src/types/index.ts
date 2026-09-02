@@ -3,6 +3,7 @@ export type ActivePage =
   | 'campaigns'
   | 'new_campaign'
   | 'templates'
+  | 'responses'
   | 'audience'
   | 'history'
   | 'analytics'
@@ -135,4 +136,59 @@ export interface CampaignAnalytics {
   location_breakdown?: LocationBreakdown[];
   recent_activity?: RecentActivityItem[];
 }
+
+export type FieldType = 'text' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox';
+
+export interface FormField {
+  id: string;
+  label: string;
+  field_type: FieldType;
+  required: boolean;
+  placeholder?: string;
+  options?: string[];
+}
+
+export interface LandingPageItem {
+  id: number;
+  owner_id: number;
+  title: string;
+  slug: string;
+  headline: string;
+  subheadline?: string;
+  body_text?: string;
+  banner_url?: string;
+  cta_button_text: string;
+  cta_redirect_url?: string;
+  form_fields: FormField[];
+  views_count: number;
+  cta_clicks_count: number;
+  submissions_count: number;
+  conversion_rate: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FormSubmissionItem {
+  id: number;
+  landing_page_id: number;
+  landing_page_title?: string;
+  landing_page_slug?: string;
+  campaign_id?: number;
+  recipient_email?: string;
+  submitted_data: Record<string, any>;
+  ip_address?: string;
+  created_at: string;
+}
+
+export interface ResponseTrackingOverviewData {
+  total_pages: number;
+  total_views: number;
+  total_clicks: number;
+  total_submissions: number;
+  overall_conversion_rate: number;
+  recent_submissions: FormSubmissionItem[];
+  top_landing_pages: LandingPageItem[];
+}
+
 

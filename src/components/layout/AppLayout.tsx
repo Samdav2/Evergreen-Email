@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Leaf, LayoutDashboard, Megaphone, Layout, Users, History, Settings, Plus, Search, Bell, HelpCircle, LogOut, Menu, X } from 'lucide-react';
+import { Leaf, LayoutDashboard, Megaphone, Layout, Users, History, Settings, Plus, Search, Bell, HelpCircle, LogOut, Menu, X, MousePointerClick } from 'lucide-react';
 import { ActivePage } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 
@@ -36,10 +36,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activePage, onNavigate, ch
     { id: 'dashboard' as ActivePage, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'campaigns' as ActivePage, label: 'Campaigns', icon: Megaphone },
     { id: 'templates' as ActivePage, label: 'Templates', icon: Layout },
+    { id: 'responses' as ActivePage, label: 'Response Tracking', icon: MousePointerClick },
     { id: 'audience' as ActivePage, label: 'Audience', icon: Users },
     { id: 'history' as ActivePage, label: 'History', icon: History },
     { id: 'settings' as ActivePage, label: 'Settings', icon: Settings },
   ];
+
 
   const sidebarContent = (
     <>

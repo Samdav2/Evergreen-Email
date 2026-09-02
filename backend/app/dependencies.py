@@ -8,12 +8,14 @@ from backend.app.repositories.contact_repository import ContactRepository
 from backend.app.repositories.template_repository import TemplateRepository
 from backend.app.repositories.campaign_repository import CampaignRepository
 from backend.app.repositories.settings_repository import SettingsRepository
+from backend.app.repositories.landing_page_repository import LandingPageRepository
 from backend.app.services.auth_service import AuthService
 from backend.app.services.contact_service import ContactService
 from backend.app.services.template_service import TemplateService
 from backend.app.services.campaign_service import CampaignService
 from backend.app.services.analytics_service import AnalyticsService
 from backend.app.services.settings_service import SettingsService
+from backend.app.services.landing_page_service import LandingPageService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
@@ -44,6 +46,12 @@ def get_settings_repository(
     session: Session = Depends(get_session),
 ) -> SettingsRepository:
     return SettingsRepository(session)
+
+
+def get_landing_page_repository(
+    session: Session = Depends(get_session),
+) -> LandingPageRepository:
+    return LandingPageRepository(session)
 
 
 def get_auth_service(
@@ -79,6 +87,12 @@ def get_settings_service(
     return SettingsService(settings_repo)
 
 
+def get_landing_page_service(
+    landing_page_repo: LandingPageRepository = Depends(get_landing_page_repository),
+) -> LandingPageService:
+    return LandingPageService(landing_page_repo)
+
+
 def get_analytics_service(
     session: Session = Depends(get_session),
 ) -> AnalyticsService:
@@ -90,3 +104,4 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
     if not token:
         return 1
     return 1
+

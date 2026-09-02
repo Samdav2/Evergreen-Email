@@ -12,14 +12,22 @@ import { SendCampaignWizardPage } from './components/campaigns/SendCampaignWizar
 import { CampaignHistoryPage } from './components/campaigns/CampaignHistoryPage';
 import { CampaignAnalyticsPage } from './components/campaigns/CampaignAnalyticsPage';
 import { RecipientListPage } from './components/campaigns/RecipientListPage';
-
+import { ResponseTrackingPage } from './components/responses/ResponseTrackingPage';
+import { PublicLandingPageView } from './components/responses/PublicLandingPageView';
 import { SettingsPage } from './components/settings/SettingsPage';
 
-function ProtectedApp({ onNavigate, activePage, selectedCampaignId, onSelectCampaignAnalytics }: {
+function ProtectedApp({
+  onNavigate,
+  activePage,
+  selectedCampaignId,
+  onSelectCampaignAnalytics,
+  onPreviewPublicPage,
+}: {
   onNavigate: (page: ActivePage) => void;
   activePage: ActivePage;
   selectedCampaignId: number;
   onSelectCampaignAnalytics: (id: number) => void;
+  onPreviewPublicPage: (slug: string) => void;
 }) {
   return (
     <AppLayout activePage={activePage} onNavigate={onNavigate}>
@@ -37,6 +45,10 @@ function ProtectedApp({ onNavigate, activePage, selectedCampaignId, onSelectCamp
       {activePage === 'audience' && <ImportAudiencePage />}
 
       {activePage === 'templates' && <TemplateDesignerPage />}
+
+      {activePage === 'responses' && (
+        <ResponseTrackingPage onPreviewPublicPage={onPreviewPublicPage} />
+      )}
 
       {activePage === 'new_campaign' && (
         <SendCampaignWizardPage onNavigate={onNavigate} />
@@ -62,6 +74,26 @@ export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
   const [activePage, setActivePage] = useState<ActivePage>('signin');
   const [selectedCampaignId, setSelectedCampaignId] = useState<number>(101);
+  const [publicSlug, setPublicSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check URL hash for public page e.g. #p=slug or location pathname /p/slug
+    const checkHash = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#p=')) {
+        const slug = hash.replace('#p=', '').trim();
+        if (slug) {
+          setPublicSlug(slug);
+          return;
+        }
+      }
+      setPublicSlug(null);
+    };
+
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -72,6 +104,8 @@ export default function App() {
   }, [isAuthenticated, isLoading]);
 
   const handleNavigate = (page: ActivePage) => {
+    setPublicSlug(null);
+    window.location.hash = '';
     setActivePage(page);
   };
 
@@ -79,6 +113,24 @@ export default function App() {
     setSelectedCampaignId(campaignId);
     setActivePage('analytics');
   };
+
+  const handlePreviewPublicPage = (slug: string) => {
+    setPublicSlug(slug);
+    window.location.hash = `#p=${slug}`;
+  };
+
+  if (publicSlug) {
+    return (
+      <PublicLandingPageView
+        slug={publicSlug}
+        onBackToApp={() => {
+          setPublicSlug(null);
+          window.location.hash = '';
+          if (isAuthenticated) setActivePage('responses');
+        }}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -104,6 +156,8 @@ export default function App() {
       activePage={activePage}
       selectedCampaignId={selectedCampaignId}
       onSelectCampaignAnalytics={handleSelectCampaignAnalytics}
+      onPreviewPublicPage={handlePreviewPublicPage}
     />
   );
 }
+

@@ -1,4 +1,13 @@
-import { Contact, EmailTemplate, Campaign, CampaignAnalytics, PaginatedContacts } from '../types';
+import {
+  Contact,
+  EmailTemplate,
+  Campaign,
+  CampaignAnalytics,
+  PaginatedContacts,
+  LandingPageItem,
+  FormSubmissionItem,
+  ResponseTrackingOverviewData,
+} from '../types';
 
 const API_BASE = '/api/v1';
 
@@ -170,3 +179,64 @@ export async function sendTestEmail(to_email: string, provider: string) {
     body: JSON.stringify({ to_email, provider }),
   });
 }
+
+// Landing Page & Response Tracking API Functions
+export async function fetchLandingPages(): Promise<LandingPageItem[]> {
+  return request(`${API_BASE}/landing-pages`);
+}
+
+export async function createLandingPage(data: Partial<LandingPageItem>): Promise<LandingPageItem> {
+  return request(`${API_BASE}/landing-pages`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateLandingPage(id: number, data: Partial<LandingPageItem>): Promise<LandingPageItem> {
+  return request(`${API_BASE}/landing-pages/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteLandingPage(id: number): Promise<{ status: string; deleted: boolean }> {
+  return request(`${API_BASE}/landing-pages/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function fetchLandingPageSubmissions(id: number): Promise<FormSubmissionItem[]> {
+  return request(`${API_BASE}/landing-pages/${id}/submissions`);
+}
+
+export async function fetchResponseTrackingOverview(): Promise<ResponseTrackingOverviewData> {
+  return request(`${API_BASE}/landing-pages/overview/summary`);
+}
+
+export async function fetchPublicLandingPage(slug: string): Promise<LandingPageItem> {
+  return request(`${API_BASE}/landing-pages/public/p/${slug}`);
+}
+
+export async function submitPublicForm(
+  slug: string,
+  submitted_data: Record<string, any>,
+  recipient_email?: string,
+  campaign_id?: number
+): Promise<FormSubmissionItem> {
+  return request(`${API_BASE}/landing-pages/public/p/${slug}/submit`, {
+    method: 'POST',
+    body: JSON.stringify({ submitted_data, recipient_email, campaign_id }),
+  });
+}
+
+export async function trackCtaClick(
+  slug: string,
+  campaign_id?: number,
+  recipient_email?: string
+): Promise<{ status: string; redirect_url: string }> {
+  return request(`${API_BASE}/landing-pages/public/p/${slug}/track-click`, {
+    method: 'POST',
+    body: JSON.stringify({ campaign_id, recipient_email, source: 'landing_page' }),
+  });
+}
+

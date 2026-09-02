@@ -9,6 +9,7 @@ from backend.app.api.v1 import (
     analytics,
     unsubscribe,
     settings,
+    landing_pages,
 )
 
 app = FastAPI(
@@ -49,3 +50,5 @@ app.include_router(campaigns.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
 app.include_router(unsubscribe.router, prefix="/api/v1")
 app.include_router(settings.router, prefix="/api/v1")
+app.include_router(landing_pages.router, prefix="/api/v1")
+
